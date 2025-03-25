@@ -33,4 +33,4 @@ jobs:
 
           nohup java -jar ./target/tomato_mall-0.0.1-SNAPSHOT.jar > ./runtime/output.log 2>&1
 
-          echo \$! > ../${PROJ_NAME}.pid
+          echo \$! > ../${PROJ_NAME}.pid "

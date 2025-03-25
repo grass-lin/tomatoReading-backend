@@ -1,0 +1,36 @@
+name: Auto Deploy to Server
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH connection
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Execute Remote Commands
+        env:
+          SSH_USER: ${{ secrets.SERVER_USER }}
+          SSH_HOST: ${{ secrets.SERVER_HOST }}
+          PROJ_NAME: "tomatoReading-backend"
+        run: ssh -o StrictHostKeyChecking=no ${SSH_USER}@{SSH_HOST} "
+          cd /home/github/workspace/${PROJ_NAME} &&
+          git pull origin master
+
+          mvn clean package
+
+          kill -9 \$(cat ../${PROJ_NAME}.pid) || true
+          rm ../${PROJ_NAME}.pid
+
+          nohup java -jar ./target/tomato_mall-0.0.1-SNAPSHOT.jar > ./runtime/output.log 2>&1
+
+          echo \$! > ../${PROJ_NAME}.pid

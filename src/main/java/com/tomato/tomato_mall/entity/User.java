@@ -29,87 +29,88 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-    /**
-     * 用户ID
-     * <p>
-     * 系统自动生成的唯一标识符，作为用户实体的主键。
-     * 采用自增长策略，由数据库在插入记录时自动分配。
-     * </p>
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  /**
+   * 用户ID
+   * <p>
+   * 系统自动生成的唯一标识符，作为用户实体的主键。
+   * 采用自增长策略，由数据库在插入记录时自动分配。
+   * </p>
+   */
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    /**
-     * 用户名
-     * <p>
-     * 用户登录系统的唯一标识，不允许重复，不能为空。
-     * 通常由字母、数字和特定符号组成，用于用户登录和身份识别。
-     * </p>
-     */
-    @Column(unique = true, nullable = false)
-    private String username;
+  /**
+   * 用户名
+   * <p>
+   * 用户登录系统的唯一标识，不允许重复，不能为空。
+   * 通常由字母、数字和特定符号组成，用于用户登录和身份识别。
+   * </p>
+   */
+  @Column(unique = true, nullable = false)
+  private String username;
 
-    /**
-     * 密码
-     * <p>
-     * 用户的登录凭证，以加密形式存储在数据库中。
-     * 不允许为空，实际存储的是经过加密算法（如BCrypt）处理后的密文，而非明文密码。
-     * </p>
-     */
-    @Column(nullable = false)
-    private String password;
+  /**
+   * 密码
+   * <p>
+   * 用户的登录凭证，以加密形式存储在数据库中。
+   * 不允许为空，实际存储的是经过加密算法（如BCrypt）处理后的密文，而非明文密码。
+   * </p>
+   */
+  @Column(nullable = false)
+  private String password;
 
-    /**
-     * 姓名
-     * <p>
-     * 用户的真实姓名或昵称，用于在系统中显示和称呼用户。
-     * 不允许为空，但可以与其他用户重名。
-     * </p>
-     */
-    @Column(nullable = false)
-    private String name;
+  /**
+   * 姓名
+   * <p>
+   * 用户的真实姓名或昵称，用于在系统中显示和称呼用户。
+   * 不允许为空，但可以与其他用户重名。
+   * </p>
+   */
+  @Column(nullable = false)
+  private String name;
 
-    /**
-     * 头像
-     * <p>
-     * 用户的头像图片地址，可以是相对路径或完整URL。
-     * 允许为空，若为空则系统可能会显示默认头像。
-     * </p>
-     */
-    private String avatar;
+  /**
+   * 头像
+   * <p>
+   * 用户的头像图片地址，可以是相对路径或完整URL。
+   * 允许为空，若为空则系统可能会显示默认头像。
+   * </p>
+   */
+  private String avatar;
 
-    /**
-     * 角色
-     * <p>
-     * 用户在系统中的角色，用于确定用户的权限级别。
-     * 不允许为空，通常由系统管理员分配。
-     * </p>
-     */
-    @Column(nullable = false)
-    private String role;
+  /**
+   * 角色
+   * <p>
+   * 用户在系统中的角色，用于确定用户的权限级别。
+   * 不允许为空，通常由系统管理员分配。
+   * </p>
+   */
+  @Column(nullable = false)
+  private String role;
 
-    /**
-     * 电话
-     * <p>
-     * 用户的联系电话，可以为空。
-     * </p>
-     */
-    private String telephone;
+  /**
+   * 电话
+   * <p>
+   * 用户的联系电话，可以为空。
+   * </p>
+   */
+  private String telephone;
 
-    /**
-     * 邮箱
-     * <p>
-     * 用户的电子邮件地址，可以为空。
-     * </p>
-     */
-    private String email;
+  /**
+   * 邮箱
+   * <p>
+   * 用户的电子邮件地址，可以为空。
+   * </p>
+   */
+  private String email;
 
-    /**
-     * 地址
-     * <p>
-     * 用户的居住地址，可以为空。
-     * </p>
-     */
-    private String location;
+  /**
+   * 地址
+   * <p>
+   * 用户的居住地址，可以为空。
+   * </p>
+   */
+  private String location;
+
 }

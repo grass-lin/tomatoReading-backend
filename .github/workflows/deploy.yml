@@ -22,8 +22,7 @@ jobs:
           SSH_USER: ${{ secrets.SERVER_USER }}
           SSH_HOST: ${{ secrets.SERVER_HOST }}
           PROJ_NAME: "tomatoReading-backend"
-        run:
-          ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=ssh-rsa ${SSH_USER}@${SSH_HOST} "
+        run: ssh -o StrictHostKeyChecking=no  ${SSH_USER}@${SSH_HOST} "
           cd /home/github/workspace/${PROJ_NAME} &&
           git pull origin master \
 

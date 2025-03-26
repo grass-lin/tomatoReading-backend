@@ -23,14 +23,14 @@ jobs:
           SSH_HOST: ${{ secrets.SERVER_HOST }}
           PROJ_NAME: "tomatoReading-backend"
         run: ssh -o StrictHostKeyChecking=no ${SSH_USER}@{SSH_HOST} "
-          cd /home/github/workspace/${PROJ_NAME} &&
-          git pull origin master
+          cd /home/github/workspace/${PROJ_NAME} && \
+          git pull origin master \
 
-          mvn clean package
+          mvn clean package \
 
-          kill -9 \$(cat ../${PROJ_NAME}.pid) || true
-          rm ../${PROJ_NAME}.pid
+          kill -9 \$(cat ../${PROJ_NAME}.pid) || true \
+          rm ../${PROJ_NAME}.pid \
 
-          nohup java -jar ./target/tomato_mall-0.0.1-SNAPSHOT.jar > ./runtime/output.log 2>&1
+          nohup java -jar ./target/tomato_mall-0.0.1-SNAPSHOT.jar > ./runtime/output.log 2>&1 \
 
           echo \$! > ../${PROJ_NAME}.pid "

@@ -28,8 +28,10 @@ jobs:
 
           mvn clean package
 
-          kill \$(cat ../${PROJ_NAME}.pid) || true
-          rm ../${PROJ_NAME}.pid
+          if [ -f \"../${PROJ_NAME}.pid\" ]; then \
+          kill \$(cat ../${PROJ_NAME}.pid) || true \
+          rm ../${PROJ_NAME}.pid \
+          fi
 
           nohup java -jar ./target/tomato_mall-0.0.1-SNAPSHOT.jar > ./runtime/output.log 2>&1
 

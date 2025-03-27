@@ -71,10 +71,10 @@ public class UserRegisterDTO {
    * 角色
    * <p>
    * 用户的系统角色，必填字段。
-   * 只能为"USER"（普通用户）或"ADMIN"（管理员），决定用户在系统中的权限级别。
+   * 只能为"user"（普通用户）或"admin"（管理员），决定用户在系统中的权限级别。
    * </p>
    */
-  @Pattern(regexp = "(?i)(USER|ADMIN)", message = "Role must be either USER or ADMIN (case insensitive)")
+  @Pattern(regexp = "user|admin", message = "Role must be either user or admin")
   private String role;
 
   /**

@@ -46,7 +46,7 @@ public class UserVO {
      * 角色
      * <p>
      * 用户在系统中的角色，用于前端进行权限控制。
-     * 常见值包括："USER"（普通用户）、"ADMIN"（管理员）等。
+     * 值包括："user"（普通用户）、"admin"（管理员）。
      * </p>
      */
     private String role;

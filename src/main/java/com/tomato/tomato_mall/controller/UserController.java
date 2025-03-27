@@ -57,8 +57,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<ResponseVO<String>> register(@Valid @RequestBody UserRegisterDTO registerDTO) {
         userService.register(registerDTO);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ResponseVO.success("注册成功"));
+        return ResponseEntity.ok(ResponseVO.success("注册成功"));
     }
     // public ResponseEntity<ResponseVO<UserVO>> register(@Valid @RequestBody UserRegisterDTO registerDTO) {
     //     UserVO userVO = userService.register(registerDTO);

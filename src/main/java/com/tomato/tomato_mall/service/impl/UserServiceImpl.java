@@ -61,7 +61,8 @@ public class UserServiceImpl implements UserService {
   @Transactional
   public UserVO register(UserRegisterDTO registerDTO) {
     if (userRepository.existsByUsername(registerDTO.getUsername())) {
-      throw new UsernameAlreadyExistsException("Username already exists");
+      throw new UsernameAlreadyExistsException("用户名已存在");
+      // throw new UsernameAlreadyExistsException("Username already exists");
     }
 
     User user = new User();
@@ -90,10 +91,12 @@ public class UserServiceImpl implements UserService {
   @Override
   public String login(UserLoginDTO loginDTO) {
     User user = userRepository.findByUsername(loginDTO.getUsername())
-        .orElseThrow(() -> new NoSuchElementException("User not found"));
+        .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+        // .orElseThrow(() -> new NoSuchElementException("User not found"));
 
     if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
-      throw new BadCredentialsException("Invalid password");
+      throw new BadCredentialsException("用户密码错误");
+      // throw new BadCredentialsException("Invalid password");
     }
 
     return generateJwtToken(user);
@@ -109,7 +112,8 @@ public class UserServiceImpl implements UserService {
   @Override
   public UserVO getUserByUsername(String username) {
     User user = userRepository.findByUsername(username)
-        .orElseThrow(() -> new NoSuchElementException("User not found"));
+        .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+        // .orElseThrow(() -> new NoSuchElementException("User not found"));
 
     UserVO userVO = new UserVO();
     BeanUtils.copyProperties(user, userVO);
@@ -132,7 +136,8 @@ public class UserServiceImpl implements UserService {
   @Transactional
   public UserVO updateUser(UserUpdateDTO updateDTO) {
     User user = userRepository.findByUsername(updateDTO.getUsername())
-        .orElseThrow(() -> new NoSuchElementException("User not found"));
+        .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+        // .orElseThrow(() -> new NoSuchElementException("User not found"));
 
     if (updateDTO.getPassword() != null && !updateDTO.getPassword().isEmpty()) {
       user.setPassword(passwordEncoder.encode(updateDTO.getPassword()));
@@ -144,6 +149,10 @@ public class UserServiceImpl implements UserService {
 
     if (updateDTO.getAvatar() != null) {
       user.setAvatar(updateDTO.getAvatar());
+    }
+
+    if(updateDTO.getRole() != null) {
+      user.setRole(updateDTO.getRole());
     }
 
     if (updateDTO.getTelephone() != null) {

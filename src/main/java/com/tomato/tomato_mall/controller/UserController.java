@@ -55,11 +55,16 @@ public class UserController {
      * @throws UsernameAlreadyExistsException 当用户名已存在时抛出
      */
     @PostMapping
-    public ResponseEntity<ResponseVO<UserVO>> register(@Valid @RequestBody UserRegisterDTO registerDTO) {
-        UserVO userVO = userService.register(registerDTO);
+    public ResponseEntity<ResponseVO<String>> register(@Valid @RequestBody UserRegisterDTO registerDTO) {
+        userService.register(registerDTO);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ResponseVO.success(userVO));
+                .body(ResponseVO.success("注册成功"));
     }
+    // public ResponseEntity<ResponseVO<UserVO>> register(@Valid @RequestBody UserRegisterDTO registerDTO) {
+    //     UserVO userVO = userService.register(registerDTO);
+    //     return ResponseEntity.status(HttpStatus.CREATED)
+    //             .body(ResponseVO.success(userVO));
+    // }
 
     /**
      * 用户登录接口
@@ -74,14 +79,21 @@ public class UserController {
      * @throws NoSuchElementException  当用户不存在时抛出
      */
     @PostMapping("/login")
-    public ResponseEntity<ResponseVO<UserVO>> login(
+    public ResponseEntity<ResponseVO<String>> login(
             @Valid @RequestBody UserLoginDTO loginDTO,
             HttpServletResponse response) {
         String token = userService.login(loginDTO);
         authenticationService.setAuthenticationCookie(token, response);
-        UserVO userVO = userService.getUserByUsername(loginDTO.getUsername());
-        return ResponseEntity.ok(ResponseVO.success(userVO));
+        return ResponseEntity.ok(ResponseVO.success(token));
     }
+    // public ResponseEntity<ResponseVO<UserVO>> login(
+    //         @Valid @RequestBody UserLoginDTO loginDTO,
+    //         HttpServletResponse response) {
+    //     String token = userService.login(loginDTO);
+    //     authenticationService.setAuthenticationCookie(token, response);
+    //     UserVO userVO = userService.getUserByUsername(loginDTO.getUsername());
+    //     return ResponseEntity.ok(ResponseVO.success(userVO));
+    // }
 
     /**
      * 获取用户详情接口
@@ -121,7 +133,7 @@ public class UserController {
      * @throws NoSuchElementException 当用户不存在时抛出
      */
     @PutMapping
-    public ResponseEntity<ResponseVO<UserVO>> updateUser(
+    public ResponseEntity<ResponseVO<String>> updateUser(
             @Valid @RequestBody UserUpdateDTO updateDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -131,7 +143,20 @@ public class UserController {
                     .body(ResponseVO.error(403, "You can only update your own profile"));
         }
 
-        UserVO updatedUser = userService.updateUser(updateDTO);
-        return ResponseEntity.ok(ResponseVO.success(updatedUser));
+        userService.updateUser(updateDTO);
+        return ResponseEntity.ok(ResponseVO.success("更新成功"));
     }
+    // public ResponseEntity<ResponseVO<UserVO>> updateUser(
+    //         @Valid @RequestBody UserUpdateDTO updateDTO) {
+    //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    //     String currentUsername = authentication.getName();
+
+    //     if (!currentUsername.equals(updateDTO.getUsername())) {
+    //         return ResponseEntity.status(HttpStatus.FORBIDDEN)
+    //                 .body(ResponseVO.error(403, "You can only update your own profile"));
+    //     }
+
+    //     UserVO updatedUser = userService.updateUser(updateDTO);
+    //     return ResponseEntity.ok(ResponseVO.success(updatedUser));
+    // }
 }

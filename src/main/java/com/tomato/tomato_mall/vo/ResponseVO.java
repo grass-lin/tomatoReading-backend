@@ -91,7 +91,7 @@ public class ResponseVO<T> {
      * @return 包含错误状态码、错误消息的响应对象
      */
     public static <T> ResponseVO<T> error(Integer code, String message) {
-        return new ResponseVO<>("400", message, null);
+        return new ResponseVO<>(String.valueOf(code), message, null);
         // return new ResponseVO<>(code, message, null);
     }
     
@@ -109,7 +109,7 @@ public class ResponseVO<T> {
      * @return 包含错误状态码、错误消息和错误数据的响应对象
      */
     public static <T> ResponseVO<T> error(Integer code, String message, T data) {
-        return new ResponseVO<>("400", message, data);
+        return new ResponseVO<>(String.valueOf(code), message, data);
         // return new ResponseVO<>(code, message, data);
     }
 }

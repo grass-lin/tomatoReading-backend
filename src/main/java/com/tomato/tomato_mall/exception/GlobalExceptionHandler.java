@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ResponseVO<Void>> handleBadCredentialsException(BadCredentialsException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ResponseVO.error(401, ex.getMessage()));
+                .body(ResponseVO.error(400, ex.getMessage()));
         // return ResponseEntity
         //         .status(HttpStatus.UNAUTHORIZED)
         //         .body(ResponseVO.error(401, ex.getMessage()));

@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ResponseVO<Void>> handleBadCredentialsException(BadCredentialsException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(ResponseVO.error(401, "Invalid username or password"));
+                .body(ResponseVO.error(401, ex.getMessage()));
     }
 
     /**

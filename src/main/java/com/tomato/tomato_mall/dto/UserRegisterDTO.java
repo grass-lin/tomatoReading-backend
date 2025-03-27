@@ -2,6 +2,7 @@ package com.tomato.tomato_mall.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -67,12 +68,24 @@ public class UserRegisterDTO {
   private String avatar;
 
   /**
+   * 角色
+   * <p>
+   * 用户的系统角色，必填字段。
+   * 只能为"USER"（普通用户）或"ADMIN"（管理员），决定用户在系统中的权限级别。
+   * </p>
+   */
+  @NotBlank(message = "Role is required")
+  @Pattern(regexp = "USER|ADMIN", message = "Role must be either USER or ADMIN")
+  private String role;
+
+  /**
    * 电话号码
    * <p>
    * 用户的联系电话，可选字段。
    * 可用于账号找回或系统通知。
    * </p>
    */
+  @Pattern(regexp = "^1\\d{10}$", message = "Telephone must be 11 digits and start with 1")
   private String telephone;
 
   /**
@@ -93,8 +106,4 @@ public class UserRegisterDTO {
    * </p>
    */
   private String location;
-
-  @NotBlank(message = "Role is required")
-  // TODO:
-  private String role;
 }

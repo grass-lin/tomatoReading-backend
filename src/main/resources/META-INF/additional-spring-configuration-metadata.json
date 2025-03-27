@@ -9,6 +9,51 @@
       "name": "app.jwt.expiration",
       "type": "java.lang.Long",
       "description": "Expiration time for JWT tokens in milliseconds."
+    },
+    {
+      "name": "app.oss.bucket-name",
+      "type": "java.lang.String",
+      "description": "Name of the Aliyun OSS bucket for file storage."
+    },
+    {
+      "name": "app.oss.region",
+      "type": "java.lang.String",
+      "description": "OSS bucket region identifier."
+    },
+    {
+      "name": "app.oss.base-path",
+      "type": "java.lang.String",
+      "description": "Base directory path within the OSS bucket for storing files."
+    },
+    {
+      "name": "app.sts.access-key-id",
+      "type": "java.lang.String",
+      "description": "Aliyun access key ID used for STS token generation."
+    },
+    {
+      "name": "app.sts.access-key-secret",
+      "type": "java.lang.String",
+      "description": "Aliyun access key secret used for STS token generation."
+    },
+    {
+      "name": "app.sts.endpoint",
+      "type": "java.lang.String",
+      "description": "Endpoint URL for the Aliyun STS service."
+    },
+    {
+      "name": "app.sts.region-id",
+      "type": "java.lang.String",
+      "description": "Aliyun region ID where resources are located."
+    },
+    {
+      "name": "app.sts.role-arn",
+      "type": "java.lang.String",
+      "description": "ARN of the RAM role to assume for temporary credentials."
+    },
+    {
+      "name": "app.sts.token-expire-time",
+      "type": "java.lang.Long",
+      "description": "Expiration time for STS tokens in seconds."
     }
   ]
 }

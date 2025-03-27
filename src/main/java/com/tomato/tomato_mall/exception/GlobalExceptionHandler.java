@@ -92,6 +92,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ResponseVO<Void>> handleBadCredentialsException(BadCredentialsException ex) {
+        // Bad practice
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ResponseVO.error(400, ex.getMessage()));

@@ -55,6 +55,7 @@ public class UserController {
      * @throws UsernameAlreadyExistsException 当用户名已存在时抛出
      */
     @PostMapping
+    // Bad Practice
     public ResponseEntity<ResponseVO<String>> register(@Valid @RequestBody UserRegisterDTO registerDTO) {
         userService.register(registerDTO);
         return ResponseEntity.ok(ResponseVO.success("注册成功"));
@@ -78,6 +79,7 @@ public class UserController {
      * @throws NoSuchElementException  当用户不存在时抛出
      */
     @PostMapping("/login")
+    // Bad Practice
     public ResponseEntity<ResponseVO<String>> login(
             @Valid @RequestBody UserLoginDTO loginDTO,
             HttpServletResponse response) {
@@ -132,6 +134,7 @@ public class UserController {
      * @throws NoSuchElementException 当用户不存在时抛出
      */
     @PutMapping
+    // Bad Practice
     public ResponseEntity<ResponseVO<String>> updateUser(
             @Valid @RequestBody UserUpdateDTO updateDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

@@ -74,8 +74,7 @@ public class UserRegisterDTO {
    * 只能为"USER"（普通用户）或"ADMIN"（管理员），决定用户在系统中的权限级别。
    * </p>
    */
-  @NotBlank(message = "Role is required")
-  @Pattern(regexp = "USER|ADMIN", message = "Role must be either USER or ADMIN")
+  @Pattern(regexp = "(?i)(USER|ADMIN)", message = "Role must be either USER or ADMIN (case insensitive)")
   private String role;
 
   /**

@@ -75,10 +75,19 @@ public class ProductVO {
     private String cover;
 
     /**
+     * 商品详情
+     * <p>
+     * 商品的详细介绍，用于在商品详情页展示。
+     * </p>
+     */
+    private String detail;
+
+    /**
      * 商品规格列表
      * <p>
      * 商品的所有规格信息列表
      * </p>
+     * 
      * @see SpecificationVO
      */
     private List<SpecificationVO> specifications;

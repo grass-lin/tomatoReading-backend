@@ -43,8 +43,7 @@ public class ResponseVO<T> {
      * - 500：服务器内部错误
      * </p>
      */
-    private String code;
-    // private Integer code;
+    private Integer code;
 
     /**
      * 响应消息
@@ -75,9 +74,7 @@ public class ResponseVO<T> {
      * @return 包含状态码、成功消息和数据的响应对象
      */
     public static <T> ResponseVO<T> success(T data) {
-        // Bad Practice
-        return new ResponseVO<>("200",null, data);
-        // return new ResponseVO<>(200, "Success", data);
+        return new ResponseVO<>(200, "Success", data);
     }
 
     /**
@@ -92,9 +89,7 @@ public class ResponseVO<T> {
      * @return 包含错误状态码、错误消息的响应对象
      */
     public static <T> ResponseVO<T> error(Integer code, String message) {
-        // Bad Practice
-        return new ResponseVO<>(String.valueOf(code), message, null);
-        // return new ResponseVO<>(code, message, null);
+        return new ResponseVO<>(code, message, null);
     }
     
     /**
@@ -111,8 +106,6 @@ public class ResponseVO<T> {
      * @return 包含错误状态码、错误消息和错误数据的响应对象
      */
     public static <T> ResponseVO<T> error(Integer code, String message, T data) {
-        // Bad Practice
-        return new ResponseVO<>(String.valueOf(code), message, data);
-        // return new ResponseVO<>(code, message, data);
+        return new ResponseVO<>(code, message, data);
     }
 }

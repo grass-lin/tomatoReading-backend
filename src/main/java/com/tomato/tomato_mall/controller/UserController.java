@@ -17,7 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 用户账户控制器
+ * 用户控制器
  * <p>
  * 提供用户注册、登录、查询和更新等功能的REST API接口
  * 所有接口返回统一的ResponseVO格式，包含状态码、消息和数据

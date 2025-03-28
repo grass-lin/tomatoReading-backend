@@ -5,6 +5,7 @@ import com.tomato.tomato_mall.security.JwtAuthenticationFilter;
 import com.tomato.tomato_mall.util.JwtUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -32,6 +33,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
   private final JwtUtils jwtUtils;
@@ -64,7 +66,7 @@ public class SecurityConfig {
    * @throws Exception 如果安全配置过程中发生错误
    */
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .cors(cors -> cors.configure(http))
         .csrf(csrf -> csrf.disable())
@@ -95,7 +97,7 @@ public class SecurityConfig {
    * @return BCrypt密码编码器实例
    */
   @Bean
-  public PasswordEncoder passwordEncoder() {
+  PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
 }

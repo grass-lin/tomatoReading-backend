@@ -16,7 +16,13 @@ public enum OSSFileTypeEnum {
      * 用户头像文件类型
      * 存储于"avatar"目录下
      */
-    AVATAR("avatar");
+    AVATAR("avatar"),
+
+    /**
+     * 商品封面文件类型
+     * 存储于"cover"目录下
+     */
+    COVER("cover");
 
     private final String directory;
 

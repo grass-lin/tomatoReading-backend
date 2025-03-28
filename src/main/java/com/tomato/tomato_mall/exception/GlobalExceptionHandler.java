@@ -3,11 +3,14 @@ package com.tomato.tomato_mall.exception;
 import com.tomato.tomato_mall.vo.ResponseVO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +30,7 @@ import java.util.NoSuchElementException;
  * - 认证凭据异常
  * - 用户名冲突异常
  * - 参数格式异常
+ * - 权限不足异常
  * - 其他未预期的系统异常
  * </p>
  * <p>
@@ -97,8 +101,8 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ResponseVO.error(400, ex.getMessage()));
         // return ResponseEntity
-        //         .status(HttpStatus.UNAUTHORIZED)
-        //         .body(ResponseVO.error(401, ex.getMessage()));
+        // .status(HttpStatus.UNAUTHORIZED)
+        // .body(ResponseVO.error(401, ex.getMessage()));
     }
 
     /**
@@ -136,6 +140,57 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理权限不足异常
+     * <p>
+     * 当已认证的用户尝试访问无权限的资源或方法时，捕获{@link AccessDeniedException}异常
+     * 并返回HTTP 403禁止访问错误响应。这通常由方法级安全注解(如@PreAuthorize)触发。
+     * </p>
+     *
+     * @param ex 权限不足异常对象
+     * @return 包含HTTP 403状态码和权限错误信息的响应实体
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ResponseVO<Void>> handleAccessDeniedException(AccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ResponseVO.error(403, "Forbidden: Access Denied"));
+    }
+
+    /**
+     * 处理请求路径不存在异常
+     * <p>
+     * 当客户端请求的URL路径没有对应的处理器时，捕获{@link NoHandlerFoundException}异常
+     * 并返回HTTP 404错误响应，表示请求的资源不存在。
+     * </p>
+     *
+     * @param ex 请求路径不存在异常对象
+     * @return 包含HTTP 404状态码和路径错误信息的响应实体
+     */
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ResponseVO<Void>> handleNoHandlerFoundException(NoHandlerFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ResponseVO.error(404, "The requested path '" + ex.getRequestURL() + "' does not exist"));
+    }
+
+    /**
+     * 处理静态资源不存在异常
+     * <p>
+     * 当客户端请求的静态资源文件不存在时，捕获{@link NoResourceFoundException}异常
+     * 并返回HTTP 404错误响应，表示请求的静态资源不存在。
+     * </p>
+     *
+     * @param ex 静态资源不存在异常对象
+     * @return 包含HTTP 404状态码和资源错误信息的响应实体
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ResponseVO<Void>> handleNoResourceFoundException(NoResourceFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ResponseVO.error(404, "The requested resource '" + ex.getResourcePath() + "' does not exist"));
+    }
+
+    /**
      * 处理所有未明确捕获的其他异常
      * <p>
      * 作为最后的防线，捕获所有其他未预期的异常，确保API不会返回原始的错误堆栈信息。
@@ -150,6 +205,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseVO<Void>> handleGenericException(Exception ex) {
+        ex.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseVO.error(500, "Internal server error"));

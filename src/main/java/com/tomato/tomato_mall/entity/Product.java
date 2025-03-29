@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import java.math.BigDecimal;
 import java.util.Set;
 
@@ -107,6 +109,8 @@ public class Product {
      * 当删除商品时，级联删除关联的规格记录。
      * </p>
      */
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Specification> specifications;
 

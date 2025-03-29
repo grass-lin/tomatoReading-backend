@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * 商品规格实体类
@@ -68,6 +70,8 @@ public class Specification {
      * 在JSON序列化时忽略此字段，以避免循环引用。
      * </p>
      */
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;

@@ -82,9 +82,8 @@ public class ProductServiceImpl implements ProductService {
         Product saveProduct = productRepository.save(product);
 
         // 处理规格信息
-        Set<Specification> specifications = new HashSet<>();
         if (createDTO.getSpecifications() != null && !createDTO.getSpecifications().isEmpty()) {
-            specifications = createDTO.getSpecifications().stream()
+            Set<Specification> specifications =  createDTO.getSpecifications().stream()
                     .map(specDTO -> {
                         Specification spec = new Specification();
                         BeanUtils.copyProperties(specDTO, spec);
@@ -92,9 +91,10 @@ public class ProductServiceImpl implements ProductService {
                         return specificationRepository.save(spec);
                     })
                     .collect(Collectors.toSet());
-
+            saveProduct.setSpecifications(specifications);
+        } else {
+            saveProduct.setSpecifications(new HashSet<>());
         }
-        saveProduct.setSpecifications(specifications);
 
         // 初始化库存
         Stockpile stockpile = new Stockpile();
@@ -102,8 +102,6 @@ public class ProductServiceImpl implements ProductService {
         stockpile.setAmount(0);
         stockpile.setFrozen(0);
         stockpileRepository.save(stockpile);
-
-        saveProduct.setStockpile(stockpile);
 
         return convertToProductVO(saveProduct);
     }
@@ -154,7 +152,7 @@ public class ProductServiceImpl implements ProductService {
      * 
      * @param updateDTO 商品更新数据传输对象
      * @return 更新后的商品视图对象
-     * @throws NoSuchElementException 当要更新的商品不存在时抛出此异常
+     * @throws NoSuchElementException   当要更新的商品不存在时抛出此异常
      * @throws IllegalArgumentException 当更新的商品标题已被其他商品使用时抛出此异常，确保商品标题在系统中的唯一性
      */
     @Override
@@ -241,8 +239,6 @@ public class ProductServiceImpl implements ProductService {
                 existingSpecs.add(savedSpec);
             }
         }
-
-        product.setSpecifications(existingSpecs);
     }
 
     /**

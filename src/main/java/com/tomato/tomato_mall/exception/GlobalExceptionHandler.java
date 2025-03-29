@@ -205,7 +205,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseVO<Void>> handleGenericException(Exception ex) {
-        ex.printStackTrace();
+        System.err.println("An unexpected error occurred: " + ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ResponseVO.error(500, "Internal server error"));

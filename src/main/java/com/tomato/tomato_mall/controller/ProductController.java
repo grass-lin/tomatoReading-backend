@@ -133,6 +133,13 @@ public class ProductController {
         return ResponseEntity.ok(ResponseVO.success("删除成功"));
     }
 
+    @DeleteMapping("/specification/{specificationId}")
+    @PreAuthorize("hasRole('admin')")
+    public ResponseEntity<ResponseVO<String>> deleteSpecification(@PathVariable Long specificationId) {
+        productService.deleteSpecification(specificationId);
+        return ResponseEntity.ok(ResponseVO.success("删除成功"));
+    }
+
     /**
      * 获取商品库存接口
      * <p>

@@ -263,6 +263,15 @@ public class ProductServiceImpl implements ProductService {
         productRepository.deleteById(id);
     }
 
+    @Override
+    @Transactional
+    public void deleteSpecification(Long specificationId) {
+        if (!specificationRepository.existsById(specificationId)) {
+            throw new NoSuchElementException("Specification not found");
+        }
+        specificationRepository.deleteById(specificationId);
+    }
+
     /**
      * 将商品实体转换为视图对象
      * <p>

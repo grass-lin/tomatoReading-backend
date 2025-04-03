@@ -26,16 +26,16 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartService cartService;
-    
+
     /**
      * 构造函数，通过依赖注入初始化服务
      *
-     * @param cartService 购物车服务，处理购物车相关业务逻辑
+     * @param cartService  购物车服务，处理购物车相关业务逻辑
      */
     public CartController(CartService cartService) {
         this.cartService = cartService;
     }
-    
+
     /**
      * 添加商品到购物车接口
      * <p>
@@ -51,7 +51,7 @@ public class CartController {
         CartItemVO cartItemVO = cartService.addToCart(username, cartAddDTO);
         return ResponseEntity.ok(ResponseVO.success(cartItemVO));
     }
-    
+
     /**
      * 删除购物车商品接口
      * <p>
@@ -67,18 +67,18 @@ public class CartController {
         cartService.removeFromCart(username, cartItemId);
         return ResponseEntity.ok(ResponseVO.success("删除成功"));
     }
-    
+
     /**
      * 修改购物车商品数量接口
      * <p>
      * 更新当前登录用户购物车中指定商品的数量
      * </p>
      *
-     * @param cartItemId 购物车商品ID
+     * @param cartItemId    购物车商品ID
      * @param cartUpdateDTO 购物车更新数据传输对象，包含新的商品数量
      * @return 返回包含更新后购物车商品信息的响应体，状态码200
      */
-    @PatchMapping("/{cartItemId}/quantity")
+    @PatchMapping("/{cartItemId}")
     // Bad practice
     public ResponseEntity<ResponseVO<String>> updateCartItemQuantity(
             @PathVariable Long cartItemId,
@@ -94,7 +94,7 @@ public class CartController {
     //     CartItemVO cartItemVO = cartService.updateCartItemQuantity(username, cartItemId, cartUpdateDTO.getQuantity());
     //     return ResponseEntity.ok(ResponseVO.success(cartItemVO));
     // }
-    
+
     /**
      * 获取购物车信息接口
      * <p>

@@ -2,9 +2,12 @@ package com.tomato.tomato_mall.controller;
 
 import com.tomato.tomato_mall.dto.CartAddDTO;
 import com.tomato.tomato_mall.dto.CartUpdateDTO;
+import com.tomato.tomato_mall.dto.CheckoutDTO;
 import com.tomato.tomato_mall.service.CartService;
+import com.tomato.tomato_mall.service.OrderService;
 import com.tomato.tomato_mall.vo.CartItemVO;
 import com.tomato.tomato_mall.vo.CartVO;
+import com.tomato.tomato_mall.vo.OrderVO;
 import com.tomato.tomato_mall.vo.ResponseVO;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -26,14 +29,17 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartService cartService;
+    private final OrderService orderService;
 
     /**
      * 构造函数，通过依赖注入初始化服务
      *
      * @param cartService  购物车服务，处理购物车相关业务逻辑
+     * @param orderService 订单服务，处理订单相关业务逻辑
      */
-    public CartController(CartService cartService) {
+    public CartController(CartService cartService, OrderService orderService) {
         this.cartService = cartService;
+        this.orderService = orderService;
     }
 
     /**
@@ -88,11 +94,13 @@ public class CartController {
         return ResponseEntity.ok(ResponseVO.success("修改数量成功"));
     }
     // public ResponseEntity<ResponseVO<CartItemVO>> updateCartItemQuantity(
-    //         @PathVariable Long cartItemId,
-    //         @Valid @RequestBody CartUpdateDTO cartUpdateDTO) {
-    //     String username = SecurityContextHolder.getContext().getAuthentication().getName();
-    //     CartItemVO cartItemVO = cartService.updateCartItemQuantity(username, cartItemId, cartUpdateDTO.getQuantity());
-    //     return ResponseEntity.ok(ResponseVO.success(cartItemVO));
+    // @PathVariable Long cartItemId,
+    // @Valid @RequestBody CartUpdateDTO cartUpdateDTO) {
+    // String username =
+    // SecurityContextHolder.getContext().getAuthentication().getName();
+    // CartItemVO cartItemVO = cartService.updateCartItemQuantity(username,
+    // cartItemId, cartUpdateDTO.getQuantity());
+    // return ResponseEntity.ok(ResponseVO.success(cartItemVO));
     // }
 
     /**
@@ -108,5 +116,24 @@ public class CartController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         CartVO cartVO = cartService.getCartItems(username);
         return ResponseEntity.ok(ResponseVO.success(cartVO));
+    }
+
+    /**
+     * 结算购物车接口（创建订单）
+     * <p>
+     * 从购物车中选择商品创建订单，验证库存，锁定库存，计算金额
+     * 支付流程的第一步
+     * </p>
+     * 
+     * @param checkoutDTO 结算信息数据传输对象，包含购物车商品ID、配送地址和支付方式
+     * @return 返回包含订单信息的响应体，状态码200
+     * @throws IllegalArgumentException         当库存不足或数据无效时抛出
+     * @throws java.util.NoSuchElementException 当用户或商品不存在时抛出
+     */
+    @PostMapping("/checkout")
+    public ResponseEntity<ResponseVO<OrderVO>> checkout(@Valid @RequestBody CheckoutDTO checkoutDTO) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        OrderVO orderVO = orderService.createOrder(username, checkoutDTO);
+        return ResponseEntity.ok(ResponseVO.success(orderVO));
     }
 }

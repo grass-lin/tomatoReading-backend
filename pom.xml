@@ -108,6 +108,12 @@
 			<artifactId>aliyun-java-sdk-core</artifactId>
 			<version>4.7.3</version>
 		</dependency>
+		<!-- Alipay SDK -->
+		<dependency>
+			<groupId>com.alipay.sdk</groupId>
+			<artifactId>alipay-sdk-java</artifactId>
+			<version>4.40.112.ALL</version>
+		</dependency>
 	</dependencies>
 
 	<build>

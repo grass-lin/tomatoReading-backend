@@ -54,6 +54,56 @@
       "name": "app.sts.token-expire-time",
       "type": "java.lang.Long",
       "description": "Expiration time for STS tokens in seconds."
+    },
+    {
+      "name": "app.alipay.app-id",
+      "type": "java.lang.String",
+      "description": "Alipay application ID assigned by Alipay Developer Platform."
+    },
+    {
+      "name": "app.alipay.merchant-private-key",
+      "type": "java.lang.String",
+      "description": "RSA private key for the merchant application to sign requests."
+    },
+    {
+      "name": "app.alipay.alipay-public-key",
+      "type": "java.lang.String",
+      "description": "Alipay's public key used to verify responses from Alipay."
+    },
+    {
+      "name": "app.alipay.gateway-url",
+      "type": "java.lang.String",
+      "description": "Alipay API gateway URL (sandbox or production environment)."
+    },
+    {
+      "name": "app.alipay.notify-url",
+      "type": "java.lang.String",
+      "description": "URL that receives asynchronous payment notifications from Alipay."
+    },
+    {
+      "name": "app.alipay.return-url",
+      "type": "java.lang.String",
+      "description": "URL for redirecting the user after completing payment on Alipay."
+    },
+    {
+      "name": "app.alipay.sign-type",
+      "type": "java.lang.String",
+      "description": "Signature algorithm type for Alipay API requests (RSA2 recommended)."
+    },
+    {
+      "name": "app.alipay.charset",
+      "type": "java.lang.String",
+      "description": "Character encoding for Alipay API communication."
+    },
+    {
+      "name": "app.alipay.format",
+      "type": "java.lang.String",
+      "description": "Data format for Alipay API requests and responses (json or xml)."
+    },
+    {
+      "name": "app.alipay.timeout-express",
+      "type": "java.lang.String",
+      "description": "Payment timeout period for Alipay transactions (e.g., '30m' for 30 minutes)."
     }
   ]
 }

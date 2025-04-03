@@ -60,10 +60,11 @@ public class UserController {
         userService.register(registerDTO);
         return ResponseEntity.ok(ResponseVO.success("注册成功"));
     }
-    // public ResponseEntity<ResponseVO<UserVO>> register(@Valid @RequestBody UserRegisterDTO registerDTO) {
-    //     UserVO userVO = userService.register(registerDTO);
-    //     return ResponseEntity.status(HttpStatus.CREATED)
-    //             .body(ResponseVO.success(userVO));
+    // public ResponseEntity<ResponseVO<UserVO>> register(@Valid @RequestBody
+    // UserRegisterDTO registerDTO) {
+    // UserVO userVO = userService.register(registerDTO);
+    // return ResponseEntity.status(HttpStatus.CREATED)
+    // .body(ResponseVO.success(userVO));
     // }
 
     /**
@@ -88,12 +89,12 @@ public class UserController {
         return ResponseEntity.ok(ResponseVO.success(token));
     }
     // public ResponseEntity<ResponseVO<UserVO>> login(
-    //         @Valid @RequestBody UserLoginDTO loginDTO,
-    //         HttpServletResponse response) {
-    //     String token = userService.login(loginDTO);
-    //     authenticationService.setAuthenticationCookie(token, response);
-    //     UserVO userVO = userService.getUserByUsername(loginDTO.getUsername());
-    //     return ResponseEntity.ok(ResponseVO.success(userVO));
+    // @Valid @RequestBody UserLoginDTO loginDTO,
+    // HttpServletResponse response) {
+    // String token = userService.login(loginDTO);
+    // authenticationService.setAuthenticationCookie(token, response);
+    // UserVO userVO = userService.getUserByUsername(loginDTO.getUsername());
+    // return ResponseEntity.ok(ResponseVO.success(userVO));
     // }
 
     /**
@@ -149,16 +150,33 @@ public class UserController {
         return ResponseEntity.ok(ResponseVO.success("更新成功"));
     }
     // public ResponseEntity<ResponseVO<UserVO>> updateUser(
-    //         @Valid @RequestBody UserUpdateDTO updateDTO) {
-    //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    //     String currentUsername = authentication.getName();
+    // @Valid @RequestBody UserUpdateDTO updateDTO) {
+    // Authentication authentication =
+    // SecurityContextHolder.getContext().getAuthentication();
+    // String currentUsername = authentication.getName();
 
-    //     if (!currentUsername.equals(updateDTO.getUsername())) {
-    //         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-    //                 .body(ResponseVO.error(403, "You can only update your own profile"));
-    //     }
-
-    //     UserVO updatedUser = userService.updateUser(updateDTO);
-    //     return ResponseEntity.ok(ResponseVO.success(updatedUser));
+    // if (!currentUsername.equals(updateDTO.getUsername())) {
+    // return ResponseEntity.status(HttpStatus.FORBIDDEN)
+    // .body(ResponseVO.error(403, "You can only update your own profile"));
     // }
+
+    // UserVO updatedUser = userService.updateUser(updateDTO);
+    // return ResponseEntity.ok(ResponseVO.success(updatedUser));
+    // }
+
+    /**
+     * 用户登出接口
+     * <p>
+     * 清除用户的认证Cookie，使当前会话无效
+     * </p>
+     *
+     * @param response HTTP响应对象，用于清除认证Cookie
+     * @return 返回包含登出成功消息的响应体，状态码200
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<ResponseVO<String>> logout(HttpServletResponse response) {
+        authenticationService.clearAuthenticationCookie(response);
+
+        return ResponseEntity.ok(ResponseVO.success("登出成功"));
+    }
 }

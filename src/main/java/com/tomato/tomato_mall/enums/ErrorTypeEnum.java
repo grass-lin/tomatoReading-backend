@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
  */
 public enum ErrorTypeEnum {
 
+    // BusinessException 
+
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "用户不存在"),
 
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "订单不存在"),
@@ -39,8 +41,15 @@ public enum ErrorTypeEnum {
 
     INCORRECT_PASSWORD(HttpStatus.BAD_REQUEST, "用户密码错误"),
 
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "没有权限访问该资源"), //但是我看代码中没有 throw 过
+
+
+
+
+    // MethodArgumentNotValidException
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "字段不合法"),
     
+    // Other
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "服务器内部错误"),;
 
     private final HttpStatus status;

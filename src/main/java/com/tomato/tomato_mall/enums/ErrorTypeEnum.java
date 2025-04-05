@@ -47,6 +47,12 @@ public enum ErrorTypeEnum {
     // NoResourceFoundException
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "请求的资源不存在: %s %s"),
 
+    // NoHandlerFoundException
+    HANDLER_NOT_FOUND(HttpStatus.NOT_FOUND, "请求的处理器不存在: %s %s"),
+
+    // HttpRequestMethodNotSupportedException
+    METHOD_NOT_SUPPORTED(HttpStatus.METHOD_NOT_ALLOWED, "请求方法不支持: %s"),
+
     // MethodArgumentNotValidException
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "字段不合法"),
     

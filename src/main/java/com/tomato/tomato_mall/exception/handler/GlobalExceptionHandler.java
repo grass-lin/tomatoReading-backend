@@ -1,9 +1,11 @@
 package com.tomato.tomato_mall.exception.handler;
 
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.validation.FieldError;
 import com.tomato.tomato_mall.exception.BusinessException;
@@ -40,6 +42,18 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ResponseVO<Void>> handleNoResourceFoundException(NoResourceFoundException ex) {
         return buildErrorResponse(ErrorTypeEnum.RESOURCE_NOT_FOUND, ex.getHttpMethod(), ex.getResourcePath());
+    }
+
+    // 由 https://www.cnblogs.com/wang-yaz/p/13225830.html，默认的静态资源映射会有 /** 通配符，就不会抛出这个错误
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ResponseVO<Void>> handleNoHandlerFoundException(NoHandlerFoundException ex) {
+        return buildErrorResponse(ErrorTypeEnum.HANDLER_NOT_FOUND, ex.getHttpMethod(), ex.getRequestURL());
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ResponseVO<Void>> handleHttpRequestMethodNotSupportedException(
+            HttpRequestMethodNotSupportedException ex) {
+        return buildErrorResponse(ErrorTypeEnum.METHOD_NOT_SUPPORTED, ex.getMethod());
     }
        
     @ExceptionHandler(Exception.class)

@@ -12,7 +12,10 @@ import com.tomato.tomato_mall.vo.ResponseVO;
 public class BusinessExceptionHandler extends BaseExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<ResponseVO<Void>> handleOtherException(BusinessException ex) {
+    public ResponseEntity<ResponseVO<Void>> handleBusinessException(BusinessException ex) {
+        if (ex.getStatus() != null) {
+            return buildErrorResponse(ex.getErrorType(), ex.getArgs());
+        }
         return buildErrorResponse(ex.getErrorType());
     }
     

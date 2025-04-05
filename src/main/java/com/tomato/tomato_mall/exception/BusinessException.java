@@ -6,14 +6,15 @@ import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 public class BusinessException extends RuntimeException {
 
     private final ErrorTypeEnum errorType;
+    private final Object[] args;
 
     public BusinessException(ErrorTypeEnum errorType) {
-        super(errorType.getMessage());
+        this.args = null;
         this.errorType = errorType;
     }
 
     public BusinessException(ErrorTypeEnum errorType, Object... args) {
-        super(errorType.getMessage(args));
+        this.args = args;
         this.errorType = errorType;
     }
 
@@ -23,5 +24,9 @@ public class BusinessException extends RuntimeException {
 
     public HttpStatus getStatus() {
         return errorType.getStatus();
+    }
+
+    public Object[] getArgs() {
+        return args;
     }
 }

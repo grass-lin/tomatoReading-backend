@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  */
 @RestControllerAdvice
 @Order(Ordered.LOWEST_PRECEDENCE)
-public class FallbackExceptionHandler extends BaseExceptionHandler {
+public class GenericExceptionHandler extends BaseExceptionHandler {
     
     /**
      * 处理所有未明确捕获的其他异常

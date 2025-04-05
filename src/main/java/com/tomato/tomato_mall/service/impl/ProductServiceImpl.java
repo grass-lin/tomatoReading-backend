@@ -6,6 +6,8 @@ import com.tomato.tomato_mall.dto.SpecificationDTO;
 import com.tomato.tomato_mall.entity.Product;
 import com.tomato.tomato_mall.entity.Specification;
 import com.tomato.tomato_mall.entity.Stockpile;
+import com.tomato.tomato_mall.enums.ErrorTypeEnum;
+import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.repository.ProductRepository;
 import com.tomato.tomato_mall.repository.SpecificationRepository;
 import com.tomato.tomato_mall.repository.StockpileRepository;
@@ -73,7 +75,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductVO createProduct(ProductCreateDTO createDTO) {
         // 检查商品标题是否已存在
         if (productRepository.existsByTitle(createDTO.getTitle())) {
-            throw new IllegalArgumentException("Product title already exists");
+            throw new BusinessException(ErrorTypeEnum.PRODUCT_TITLE_ALREADY_EXISTS);
         }
 
         Product product = new Product();
@@ -164,7 +166,7 @@ public class ProductServiceImpl implements ProductService {
         // 检查更新的标题是否与其他商品重复
         if (updateDTO.getTitle() != null && !updateDTO.getTitle().equals(product.getTitle())) {
             if (productRepository.existsByTitle(updateDTO.getTitle())) {
-                throw new IllegalArgumentException("Product title already exists");
+                throw new BusinessException(ErrorTypeEnum.PRODUCT_TITLE_ALREADY_EXISTS);
             }
         }
 

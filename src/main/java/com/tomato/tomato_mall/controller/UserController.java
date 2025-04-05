@@ -52,7 +52,7 @@ public class UserController {
      * 
      * @param registerDTO 注册信息数据传输对象，包含用户名、密码等注册信息
      * @return 返回包含新创建用户信息的响应体，状态码201
-     * @throws UsernameAlreadyExistsException 当用户名已存在时抛出
+     * @throws UsernameBusinessException 当用户名已存在时抛出
      */
     @PostMapping
     // Bad Practice

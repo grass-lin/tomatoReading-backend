@@ -1,4 +1,4 @@
-package com.tomato.tomato_mall.exception;
+package com.tomato.tomato_mall.exception.handler;
 
 import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 import com.tomato.tomato_mall.vo.ResponseVO;
@@ -40,11 +40,4 @@ public class ValidationExceptionHandler extends BaseExceptionHandler {
         return buildErrorResponseWithData(ErrorTypeEnum.VALIDATION_ERROR, errors);
     }
     
-    /**
-     * 处理参数格式错误异常
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ResponseVO<Void>> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return buildErrorResponse(ErrorTypeEnum.ILLEGAL_ARGUMENT, ex.getMessage());
-    }
 }

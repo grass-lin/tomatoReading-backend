@@ -2,6 +2,8 @@ package com.tomato.tomato_mall.service.impl;
 
 import com.tomato.tomato_mall.dto.StockpileUpdateDTO;
 import com.tomato.tomato_mall.entity.Stockpile;
+import com.tomato.tomato_mall.enums.ErrorTypeEnum;
+import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.repository.ProductRepository;
 import com.tomato.tomato_mall.repository.StockpileRepository;
 import com.tomato.tomato_mall.service.StockpileService;
@@ -87,7 +89,7 @@ public class StockpileServiceImpl implements StockpileService {
         
         // 验证库存数量是否合法
         if (amount < stockpile.getFrozen()) {
-            throw new IllegalArgumentException("Amount cannot be less than frozen amount");
+            throw new BusinessException(ErrorTypeEnum.STOCKPILE_AMOUNT_CANNOT_BE_LESS_THAN_FROZEN_AMOUNT);
         }
         
         stockpile.setAmount(amount);

@@ -4,7 +4,7 @@ import com.tomato.tomato_mall.dto.UserLoginDTO;
 import com.tomato.tomato_mall.dto.UserRegisterDTO;
 import com.tomato.tomato_mall.dto.UserUpdateDTO;
 import com.tomato.tomato_mall.entity.User;
-import com.tomato.tomato_mall.exception.UsernameAlreadyExistsException;
+import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.repository.UserRepository;
 import com.tomato.tomato_mall.service.UserService;
 import com.tomato.tomato_mall.vo.UserVO;
@@ -14,6 +14,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 
 import java.util.NoSuchElementException;
 
@@ -55,14 +56,14 @@ public class UserServiceImpl implements UserService {
    * 
    * @param registerDTO 用户注册数据传输对象，包含注册所需信息
    * @return 注册成功的用户视图对象，不包含敏感信息
-   * @throws UsernameAlreadyExistsException 当用户名已被占用时抛出此异常
+   * @throws UsernameBusinessException 当用户名已被占用时抛出此异常
    */
   @Override
   @Transactional
   public UserVO register(UserRegisterDTO registerDTO) {
     if (userRepository.existsByUsername(registerDTO.getUsername())) {
-      throw new UsernameAlreadyExistsException("用户名已存在");
-      // throw new UsernameAlreadyExistsException("Username already exists");
+      throw new BusinessException(ErrorTypeEnum.USERNAME_ALREADY_EXISTS);
+      // throw new UsernameBusinessException("Username already exists");
     }
 
     User user = new User();
@@ -90,11 +91,11 @@ public class UserServiceImpl implements UserService {
   @Override
   public String login(UserLoginDTO loginDTO) {
     User user = userRepository.findByUsername(loginDTO.getUsername())
-        .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+        .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
         // .orElseThrow(() -> new NoSuchElementException("User not found"));
 
     if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
-      throw new BadCredentialsException("用户密码错误");
+      throw new BusinessException(ErrorTypeEnum.INCORRECT_PASSWORD);
       // throw new BadCredentialsException("Invalid password");
     }
 
@@ -111,7 +112,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public UserVO getUserByUsername(String username) {
     User user = userRepository.findByUsername(username)
-        .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+        .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
         // .orElseThrow(() -> new NoSuchElementException("User not found"));
 
     UserVO userVO = new UserVO();
@@ -135,7 +136,7 @@ public class UserServiceImpl implements UserService {
   @Transactional
   public UserVO updateUser(UserUpdateDTO updateDTO) {
     User user = userRepository.findByUsername(updateDTO.getUsername())
-        .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+        .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
         // .orElseThrow(() -> new NoSuchElementException("User not found"));
 
     if (updateDTO.getPassword() != null && !updateDTO.getPassword().isEmpty()) {

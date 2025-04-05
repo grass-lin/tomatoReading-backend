@@ -14,38 +14,34 @@ import org.springframework.http.HttpStatus;
  * </p>
  */
 public enum ErrorTypeEnum {
-    // 认证错误 401更好
-    BAD_CREDENTIALS(HttpStatus.BAD_REQUEST, "%s"),
 
-    // 权限错误
-    ACCESS_DENIED(HttpStatus.FORBIDDEN, "Forbidden: Access Denied"),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "用户不存在"),
 
-    // 用户名冲突错误
-    USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "%s"),
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "订单不存在"),
 
+    STOCKPILE_NOT_FOUND(HttpStatus.NOT_FOUND, "商品库存不存在"),
 
+    CARTITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "购物车商品不存在"),
+
+    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "商品不存在"),
+
+    USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "用户名已存在"),
+
+    PRODUCT_TITLE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "商品标题已存在"),
+
+    STOCKPILE_NOT_ENOUGH(HttpStatus.BAD_REQUEST, "商品库存不足"),
+
+    CARTITEM_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "购物车商品不属于当前用户"),
+
+    PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "支付金额不匹配"),
+
+    STOCKPILE_AMOUNT_CANNOT_BE_LESS_THAN_FROZEN_AMOUNT(HttpStatus.BAD_REQUEST, "库存数量不能少于冻结数量"),
+
+    INCORRECT_PASSWORD(HttpStatus.BAD_REQUEST, "用户密码错误"),
+
+    VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "字段不合法"),
     
-    // 参数错误
-    ILLEGAL_ARGUMENT(HttpStatus.BAD_REQUEST, "%s"),
-    
-    // 验证错误
-    VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "Validation failed"),
-    
-
-    
-    // 路径不存在错误
-    PATH_NOT_FOUND(HttpStatus.NOT_FOUND, "The requested path '%s' does not exist"),
-    
-    // 资源不存在错误
-    RESOURCE_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "The requested resource '%s' does not exist"),
-
-     // 资源不存在错误
-    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "%s"),   
-
-
-
-    // 通用服务器错误
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "服务器内部错误"),;
 
     private final HttpStatus status;
     private final String messageTemplate;

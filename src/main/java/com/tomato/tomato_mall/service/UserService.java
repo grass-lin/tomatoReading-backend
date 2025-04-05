@@ -4,7 +4,6 @@ import com.tomato.tomato_mall.dto.UserLoginDTO;
 import com.tomato.tomato_mall.dto.UserRegisterDTO;
 import com.tomato.tomato_mall.dto.UserUpdateDTO;
 import com.tomato.tomato_mall.vo.UserVO;
-import com.tomato.tomato_mall.exception.UsernameAlreadyExistsException;
 import java.util.NoSuchElementException;
 import org.springframework.security.authentication.BadCredentialsException;
 
@@ -35,7 +34,7 @@ public interface UserService {
      *
      * @param registerDTO 用户注册数据传输对象，包含注册所需的用户信息
      * @return 注册成功的用户视图对象
-     * @throws UsernameAlreadyExistsException 当用户名已被占用时抛出此异常
+     * @throws UsernameBusinessException 当用户名已被占用时抛出此异常
      */
     UserVO register(UserRegisterDTO registerDTO);
 

@@ -1,4 +1,4 @@
-package com.tomato.tomato_mall.exception;
+package com.tomato.tomato_mall.exception.handler;
 
 import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 import com.tomato.tomato_mall.vo.ResponseVO;

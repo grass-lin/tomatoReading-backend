@@ -12,6 +12,8 @@ import com.tomato.tomato_mall.repository.UserRepository;
 import com.tomato.tomato_mall.service.CartService;
 import com.tomato.tomato_mall.vo.CartItemVO;
 import com.tomato.tomato_mall.vo.CartVO;
+import com.tomato.tomato_mall.exception.BusinessException;
+import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,17 +77,17 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartItemVO addToCart(String username, CartAddDTO cartAddDTO) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
         
         Product product = productRepository.findById(cartAddDTO.getProductId())
-                .orElseThrow(() -> new NoSuchElementException("商品不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
         
         // 校验库存
         Stockpile stockpile = stockpileRepository.findByProductId(product.getId())
-                .orElseThrow(() -> new NoSuchElementException("商品库存不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
         
         if (stockpile.getAmount() < cartAddDTO.getQuantity()) {
-            throw new IllegalArgumentException("商品库存不足");
+            throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
         }
         
         // 检查购物车是否已有该商品
@@ -99,7 +101,7 @@ public class CartServiceImpl implements CartService {
             
             // 再次校验库存
             if (stockpile.getAmount() < newQuantity) {
-                throw new IllegalArgumentException("商品库存不足");
+                throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
             }
             
             cartItem.setQuantity(newQuantity);
@@ -131,14 +133,14 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public void removeFromCart(String username, Long cartItemId) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
         
         CartItem cartItem = cartRepository.findById(cartItemId)
-                .orElseThrow(() -> new NoSuchElementException("购物车商品不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.CARTITEM_NOT_FOUND));
         
         // 验证购物车商品属于当前用户
         if (!cartItem.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("无权操作该购物车商品");
+            throw new BusinessException(ErrorTypeEnum.CARTITEM_NOT_BELONG_TO_USER);
         }
         
         cartRepository.delete(cartItem);
@@ -162,22 +164,22 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartItemVO updateCartItemQuantity(String username, Long cartItemId, Integer quantity) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
         
         CartItem cartItem = cartRepository.findById(cartItemId)
-                .orElseThrow(() -> new NoSuchElementException("购物车商品不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.CARTITEM_NOT_FOUND));
         
         // 验证购物车商品属于当前用户
         if (!cartItem.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("无权操作该购物车商品");
+            throw new BusinessException(ErrorTypeEnum.CARTITEM_NOT_BELONG_TO_USER);
         }
         
         // 校验库存
         Stockpile stockpile = stockpileRepository.findByProductId(cartItem.getProduct().getId())
-                .orElseThrow(() -> new NoSuchElementException("商品库存不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
         
         if (stockpile.getAmount() < quantity) {
-            throw new IllegalArgumentException("商品库存不足");
+            throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
         }
         
         cartItem.setQuantity(quantity);
@@ -199,7 +201,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartVO getCartItems(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
         
         List<CartItem> cartItems = cartRepository.findByUser(user);
         

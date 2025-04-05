@@ -1,6 +1,7 @@
 package com.tomato.tomato_mall.exception.handler;
 
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -35,10 +36,15 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
         
         return buildErrorResponseWithData(ErrorTypeEnum.VALIDATION_ERROR, errors);
     }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ResponseVO<Void>> handleNoResourceFoundException(NoResourceFoundException ex) {
+        return buildErrorResponse(ErrorTypeEnum.RESOURCE_NOT_FOUND, ex.getHttpMethod(), ex.getResourcePath());
+    }
        
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseVO<Void>> handleGenericException(Exception ex) {
-        System.err.println("An unexpected error occurred: " + ex.getMessage());
+        System.err.println("An unexpected error " + "[" + ex + "]" + " occurred: " + ex.getMessage());
         return buildErrorResponse(ErrorTypeEnum.INTERNAL_SERVER_ERROR);
     }
 }

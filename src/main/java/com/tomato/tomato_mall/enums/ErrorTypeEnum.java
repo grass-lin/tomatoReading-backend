@@ -44,7 +44,8 @@ public enum ErrorTypeEnum {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "没有权限访问该资源"), //但是我看代码中没有 throw 过
 
 
-
+    // NoResourceFoundException
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "请求的资源不存在: %s %s"),
 
     // MethodArgumentNotValidException
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "字段不合法"),

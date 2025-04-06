@@ -39,10 +39,13 @@ public enum ErrorTypeEnum {
 
     STOCKPILE_AMOUNT_CANNOT_BE_LESS_THAN_FROZEN_AMOUNT(HttpStatus.BAD_REQUEST, "库存数量不能少于冻结数量"),
 
-    INCORRECT_PASSWORD(HttpStatus.BAD_REQUEST, "用户密码错误"),
+    INCORRECT_PASSWORD(HttpStatus.BAD_REQUEST, "用户密码错误"), // Bad practice
 
-    ACCESS_DENIED(HttpStatus.FORBIDDEN, "没有权限访问该资源"), //但是我看代码中没有 throw 过
+    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "无效的文件类型: %s"),
 
+
+    // AccessDeniedException
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "没有权限访问该资源"),
 
     // NoResourceFoundException
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "请求的资源不存在: %s %s"),

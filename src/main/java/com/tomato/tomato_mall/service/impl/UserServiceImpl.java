@@ -10,7 +10,10 @@ import com.tomato.tomato_mall.service.UserService;
 import com.tomato.tomato_mall.vo.UserVO;
 import com.tomato.tomato_mall.util.JwtUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -111,6 +114,13 @@ public class UserServiceImpl implements UserService {
    */
   @Override
   public UserVO getUserByUsername(String username) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String currentUsername = authentication.getName();
+
+    if (!currentUsername.equals(username)) {
+      throw new AccessDeniedException("");
+    }
+
     User user = userRepository.findByUsername(username)
         .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
         // .orElseThrow(() -> new NoSuchElementException("User not found"));
@@ -135,6 +145,12 @@ public class UserServiceImpl implements UserService {
   @Override
   @Transactional
   public UserVO updateUser(UserUpdateDTO updateDTO) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String currentUsername = authentication.getName();
+
+    if (!currentUsername.equals(updateDTO.getUsername())) {
+      throw new AccessDeniedException("");
+    }
     User user = userRepository.findByUsername(updateDTO.getUsername())
         .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
         // .orElseThrow(() -> new NoSuchElementException("User not found"));

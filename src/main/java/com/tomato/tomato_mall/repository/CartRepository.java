@@ -121,4 +121,44 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * @param userId 用户ID
      */
     void deleteByUserId(Long userId);
+    
+    /**
+     * 根据用户和状态查找购物车商品
+     * <p>
+     * 查询指定用户的购物车中所有指定状态的商品。该方法基于Spring Data的命名查询约定，
+     * 会自动转换为相应的SQL查询。
+     * </p>
+     *
+     * @param user 要查询的用户
+     * @param status 要查询的状态
+     * @return 用户购物车中指定状态的商品列表
+     */
+    List<CartItem> findByUserAndStatus(User user, CartItem.CartItemStatus status);
+    
+    /**
+     * 根据用户、商品和状态查找购物车商品
+     * <p>
+     * 查询指定用户的购物车中是否存在指定商品和状态。该方法基于Spring Data的命名查询约定，
+     * 会自动转换为相应的SQL查询。
+     * </p>
+     *
+     * @param user 要查询的用户
+     * @param product 要查询的商品
+     * @param status 要查询的状态
+     * @return 封装在Optional中的购物车商品实体；如果不存在则返回空Optional
+     */
+    Optional<CartItem> findByUserAndProductAndStatus(User user, Product product, CartItem.CartItemStatus status);
+    
+    /**
+     * 根据订单ID和状态查找购物车商品
+     * <p>
+     * 查询指定订单ID的购物车中所有指定状态的商品。该方法基于Spring Data的命名查询约定，
+     * 会自动转换为相应的SQL查询。
+     * </p>
+     *
+     * @param orderId 要查询的订单ID
+     * @param status 要查询的状态
+     * @return 订单中指定状态的商品列表
+     */
+    List<CartItem> findByOrderIdAndStatus(Long orderId, CartItem.CartItemStatus status);
 }

@@ -1,5 +1,6 @@
 package com.tomato.tomato_mall.controller;
 
+import com.tomato.tomato_mall.dto.CancelOrderDTO;
 import com.tomato.tomato_mall.dto.PaymentCallbackDTO;
 import com.tomato.tomato_mall.service.OrderService;
 import com.tomato.tomato_mall.vo.OrderVO;
@@ -8,6 +9,7 @@ import com.tomato.tomato_mall.vo.PaymentVO;
 import com.tomato.tomato_mall.vo.ResponseVO;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -85,6 +87,24 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public ResponseEntity<ResponseVO<OrderVO>> getOrderDetail(@PathVariable String orderId) {
         OrderVO orderVO = orderService.getOrderById(orderId);
+        return ResponseEntity.ok(ResponseVO.success(orderVO));
+    }
+
+    /**
+     * 取消订单接口
+     * <p>
+     * 允许用户取消未支付或未完成的订单，根据提供的取消信息处理订单取消逻辑
+     * </p>
+     * 
+     * @param cancelOrderDTO 订单取消数据传输对象，包含订单ID和取消原因
+     * @return 返回包含已取消订单详情的响应体，状态码200
+     * @throws java.util.NoSuchElementException 当订单不存在时抛出
+     * @throws IllegalStateException 当订单状态不允许取消时抛出
+     */
+    @DeleteMapping()
+    public ResponseEntity<ResponseVO<OrderVO>> cancelOrder(@Valid @RequestBody CancelOrderDTO cancelOrderDTO) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        OrderVO orderVO = orderService.cancelOrder(username, cancelOrderDTO);
         return ResponseEntity.ok(ResponseVO.success(orderVO));
     }
 }

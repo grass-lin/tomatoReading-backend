@@ -6,11 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * 订单项实体类
  * <p>
  * 该类定义了系统中订单项的数据结构，用于存储订单中每个商品的详细信息。
+ * 添加了状态字段，用于追踪订单项的生命周期。
  * </p>
  */
 @Entity
@@ -65,6 +67,70 @@ public class OrderItem {
      */
     @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
+    
+    /**
+     * 订单项状态
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private OrderItemStatus status = OrderItemStatus.PENDING;
+    
+    /**
+     * 原购物车项ID，用于追踪来源
+     */
+    @Column(name = "cart_item_id")
+    private Long cartItemId;
+    
+    /**
+     * 最后更新时间
+     */
+    @Column(name = "update_time")
+    private LocalDateTime updateTime;
+
+    /**
+     * 订单项状态枚举
+     */
+    public enum OrderItemStatus {
+        /**
+         * 待支付状态 - 订单已创建，等待支付
+         */
+        PENDING,
+        
+        /**
+         * 已支付状态 - 订单已支付，等待发货
+         */
+        PAID,
+        
+        /**
+         * 已发货状态 - 商品已发货，等待收货
+         */
+        SHIPPED,
+        
+        /**
+         * 已完成状态 - 订单已完成
+         */
+        COMPLETED,
+        
+        /**
+         * 已取消状态 - 订单已取消
+         */
+        CANCELLED,
+        
+        /**
+         * 支付失败状态 - 支付失败
+         */
+        PAYMENT_FAILED,
+        
+        /**
+         * 退款中状态 - 申请退款处理中
+         */
+        REFUNDING,
+        
+        /**
+         * 已退款状态 - 退款完成
+         */
+        REFUNDED
+    }
 
     /**
      * 计算小计金额
@@ -84,8 +150,14 @@ public class OrderItem {
      * 预创建/预更新方法
      */
     @PrePersist
-    @PreUpdate
-    protected void onSave() {
+    protected void onCreate() {
         updateSubtotal();
+        updateTime = LocalDateTime.now();
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updateSubtotal();
+        updateTime = LocalDateTime.now();
     }
 }

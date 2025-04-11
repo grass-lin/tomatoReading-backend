@@ -1,5 +1,6 @@
 package com.tomato.tomato_mall.service;
 
+import com.tomato.tomato_mall.dto.CancelOrderDTO;
 import com.tomato.tomato_mall.dto.CheckoutDTO;
 import com.tomato.tomato_mall.dto.PaymentCallbackDTO;
 import com.tomato.tomato_mall.vo.OrderVO;
@@ -76,4 +77,19 @@ public interface OrderService {
      * @throws java.util.NoSuchElementException 当订单不存在时抛出此异常
      */
     OrderVO getOrderById(String orderId);
+    
+    /**
+     * 取消订单
+     * <p>
+     * 根据订单ID取消订单，并记录取消原因。
+     * 取消订单后可能需要恢复库存，更新订单状态为已取消。
+     * </p>
+     *
+     * @param username 用户名
+     * @param cancelOrderDTO 取消订单数据传输对象，包含订单ID和取消原因等信息
+     * @return 取消后的订单视图对象
+     * @throws java.util.NoSuchElementException 当订单不存在时抛出此异常
+     * @throws IllegalStateException 当订单状态不允许取消时抛出此异常
+     */
+    public OrderVO cancelOrder(String username, CancelOrderDTO cancelOrderDTO);
 }

@@ -81,7 +81,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ResponseVO<Void>> handleNoSuchElementException(NoSuchElementException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(ResponseVO.error(404, ex.getMessage()));
+                .body(ResponseVO.error(400, ex.getMessage()));
     }
 
     /**

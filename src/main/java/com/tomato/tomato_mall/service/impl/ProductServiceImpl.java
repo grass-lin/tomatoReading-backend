@@ -83,7 +83,7 @@ public class ProductServiceImpl implements ProductService {
 
         // 处理规格信息
         if (createDTO.getSpecifications() != null && !createDTO.getSpecifications().isEmpty()) {
-            Set<Specification> specifications =  createDTO.getSpecifications().stream()
+            Set<Specification> specifications = createDTO.getSpecifications().stream()
                     .map(specDTO -> {
                         Specification spec = new Specification();
                         BeanUtils.copyProperties(specDTO, spec);
@@ -205,10 +205,7 @@ public class ProductServiceImpl implements ProductService {
     /**
      * 更新商品规格信息
      * <p>
-     * 根据传入的规格信息更新商品的规格。
-     * 如果规格已存在（根据item判断），则更新其值；
-     * 如果规格不存在，则创建新规格。
-     * 此方法实现了规格的增量更新，不会删除现有规格。
+     * 替换更新规格信息
      * </p>
      * 
      * @param product        要更新规格的商品
@@ -217,6 +214,20 @@ public class ProductServiceImpl implements ProductService {
     private void updateProductSpecifications(Product product, List<SpecificationDTO> specifications) {
         Set<Specification> existingSpecs = product.getSpecifications();
 
+        // 删除规格
+        Set<String> dtoSpecItems = specifications.stream()
+                .map(SpecificationDTO::getItem)
+                .collect(Collectors.toSet());
+
+        List<Specification> specsToRemove = existingSpecs.stream()
+                .filter(spec -> !dtoSpecItems.contains(spec.getItem()))
+                .collect(Collectors.toList());
+        for (Specification spec : specsToRemove) {
+            existingSpecs.remove(spec);
+            specificationRepository.delete(spec);
+        }
+
+        // 更新规格
         for (SpecificationDTO specDTO : specifications) {
             // 查找匹配的现有规格
             Specification matchingSpec = existingSpecs.stream()

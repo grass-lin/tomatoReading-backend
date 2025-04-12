@@ -169,6 +169,7 @@ public class OrderServiceImpl implements OrderService {
 
             // 创建订单项
             OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
             orderItem.setProduct(product);
             orderItem.setProductName(product.getTitle());
             orderItem.setPrice(product.getPrice());

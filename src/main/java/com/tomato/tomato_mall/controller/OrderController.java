@@ -101,7 +101,7 @@ public class OrderController {
      * @throws java.util.NoSuchElementException 当订单不存在时抛出
      * @throws IllegalStateException 当订单状态不允许取消时抛出
      */
-    @DeleteMapping()
+    @DeleteMapping
     public ResponseEntity<ResponseVO<OrderVO>> cancelOrder(@Valid @RequestBody CancelOrderDTO cancelOrderDTO) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         OrderVO orderVO = orderService.cancelOrder(username, cancelOrderDTO);

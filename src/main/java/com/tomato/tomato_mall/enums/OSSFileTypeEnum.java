@@ -22,7 +22,14 @@ public enum OSSFileTypeEnum {
      * 商品封面文件类型
      * 存储于"cover"目录下
      */
-    COVER("cover");
+    COVER("cover"),
+    
+    /** 
+     * 广告图片文件类型
+     * 存储于"advertisement"目录下
+     */
+    ADVERTISEMENT("advertisement");
+
 
     private final String directory;
 

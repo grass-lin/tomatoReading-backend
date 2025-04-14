@@ -76,7 +76,8 @@ public class AdvertisementController {
      * @return 返回包含新创建广告信息的响应体，状态码200
      */
     @PostMapping
-    public ResponseEntity<ResponseVO<AdvertisementVO>> createAdvertisement(@Valid @RequestBody AdvertisementCreateDTO createDTO) {
+    public ResponseEntity<ResponseVO<AdvertisementVO>> createAdvertisement(
+            @Valid @RequestBody AdvertisementCreateDTO createDTO) {
         AdvertisementVO newAdvertisement = advertisementService.createAdvertisement(createDTO);
         return ResponseEntity.ok(ResponseVO.success(newAdvertisement));
     }
@@ -91,10 +92,18 @@ public class AdvertisementController {
      * @return 返回包含更新后广告信息的响应体，状态码200
      */
     @PutMapping
-    public ResponseEntity<ResponseVO<AdvertisementVO>> updateAdvertisement(@Valid @RequestBody AdvertisementUpdateDTO updateDTO) {
-        AdvertisementVO updatedAdvertisement = advertisementService.updateAdvertisement(updateDTO);
-        return ResponseEntity.ok(ResponseVO.success(updatedAdvertisement));
+    // Bad Practice
+    public ResponseEntity<ResponseVO<String>> updateAdvertisement(
+            @Valid @RequestBody AdvertisementUpdateDTO updateDTO) {
+        advertisementService.updateAdvertisement(updateDTO);
+        return ResponseEntity.ok(ResponseVO.success("更新成功"));
     }
+    // public ResponseEntity<ResponseVO<AdvertisementVO>> updateAdvertisement(@Valid
+    // @RequestBody AdvertisementUpdateDTO updateDTO) {
+    // AdvertisementVO updatedAdvertisement =
+    // advertisementService.updateAdvertisement(updateDTO);
+    // return ResponseEntity.ok(ResponseVO.success(updatedAdvertisement));
+    // }
 
     /**
      * 删除广告接口

@@ -5,6 +5,8 @@ import com.tomato.tomato_mall.dto.UserRegisterDTO;
 import com.tomato.tomato_mall.dto.UserUpdateDTO;
 import com.tomato.tomato_mall.vo.UserVO;
 import com.tomato.tomato_mall.exception.UsernameAlreadyExistsException;
+
+import java.util.List;
 import java.util.NoSuchElementException;
 import org.springframework.security.authentication.BadCredentialsException;
 
@@ -48,7 +50,7 @@ public interface UserService {
      *
      * @param loginDTO 用户登录数据传输对象，包含用户名和密码
      * @return 生成的JWT令牌字符串
-     * @throws NoSuchElementException 当用户不存在时抛出此异常
+     * @throws NoSuchElementException  当用户不存在时抛出此异常
      * @throws BadCredentialsException 当密码不正确时抛出此异常
      */
     String login(UserLoginDTO loginDTO);
@@ -65,6 +67,17 @@ public interface UserService {
      * @throws NoSuchElementException 当用户不存在时抛出此异常
      */
     UserVO getUserByUsername(String username);
+
+    /**
+     * 获取所有用户信息
+     * <p>
+     * 查询并返回系统中所有用户的列表，仅管理员可使用该功能。
+     * 返回的用户信息已转换为视图对象，不包含敏感信息如密码。
+     * </p>
+     *
+     * @return 所有用户的视图对象列表
+     */
+    List<UserVO> getAllUsers();
 
     /**
      * 更新用户信息

@@ -10,8 +10,12 @@ import com.tomato.tomato_mall.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -141,7 +145,10 @@ public class UserController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
 
-        if (!currentUsername.equals(updateDTO.getUsername())) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_admin"));
+
+        if (!isAdmin && !currentUsername.equals(updateDTO.getUsername())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(ResponseVO.error(403, "You can only update your own profile"));
         }
@@ -178,5 +185,20 @@ public class UserController {
         authenticationService.clearAuthenticationCookie(response);
 
         return ResponseEntity.ok(ResponseVO.success("登出成功"));
+    }
+
+    /**
+     * 获取所有用户信息接口
+     * <p>
+     * 仅管理员可访问此接口，返回系统中所有用户的信息列表
+     * </p>
+     *
+     * @return 返回包含所有用户信息列表的响应体，状态码200
+     */
+    @GetMapping
+    @PreAuthorize("hasRole('admin')")
+    public ResponseEntity<ResponseVO<List<UserVO>>> getUsers() {
+        List<UserVO> users = userService.getAllUsers();
+        return ResponseEntity.ok(ResponseVO.success(users));
     }
 }

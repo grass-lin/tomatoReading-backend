@@ -8,7 +8,6 @@ import lombok.Data;
  * 收货地址数据传输对象
  * <p>
  * 该DTO封装了收货地址的详细信息，包括收货人姓名、联系电话、详细地址和邮政编码等。
- * 作为CheckoutDTO的一部分，用于在订单创建过程中传递收货信息。
  * </p>
  *
  * @author Team Tomato

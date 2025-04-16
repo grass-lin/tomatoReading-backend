@@ -127,7 +127,7 @@ public class OrderServiceImpl implements OrderService {
         List<Long> cartItemIds = checkoutDTO.getCartItemIds();
         List<CartItem> cartItems = cartRepository.findAllById(cartItemIds);
 
-        // 验证购物车项是否属于当前用户且状态为ACTIVE
+        // 验证购物车项
         for (CartItem cartItem : cartItems) {
             if (!cartItem.getUser().getId().equals(user.getId())) {
                 throw new IllegalArgumentException("购物车商品不属于当前用户");
@@ -311,7 +311,6 @@ public class OrderServiceImpl implements OrderService {
             payment.setAmount(order.getTotalAmount());
             payment.setPaymentMethod(order.getPaymentMethod());
             payment.setStatus(Payment.PaymentStatus.PENDING);
-            payment.setCreateTime(LocalDateTime.now());
             paymentRepository.save(payment);
 
             // 调用支付宝接口获取支付表单
@@ -408,8 +407,10 @@ public class OrderServiceImpl implements OrderService {
 
         // 更新订单状态
         order.setStatus(OrderStatus.PAID);
-        order.setUpdateTime(LocalDateTime.now());
         orderRepository.save(order);
+
+        // 更新购物车项状态
+        cartService.markCartItemsByOrderIdAsCompleted(order.getId());
 
         // 更新订单项状态
         List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
@@ -584,8 +585,7 @@ public class OrderServiceImpl implements OrderService {
             // 释放锁定的库存
             releaseStockForOrder(order);
 
-            // 根据系统配置决定是否恢复购物车
-            // 这里假设超时订单不恢复购物车，仅标记为取消状态
+            // 更新购物车项状态
             cartService.markCartItemsByOrderIdAsCancelled(order.getId());
 
             // 更新支付记录

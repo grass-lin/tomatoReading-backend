@@ -1,9 +1,7 @@
 package com.tomato.tomato_mall.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,10 +18,8 @@ import java.util.List;
 @Entity
 @Table(name = "orders")
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Order {
-    
+
     /**
      * 订单ID
      */
@@ -63,7 +59,7 @@ public class Order {
      */
     @Column(name = "create_time")
     private LocalDateTime createTime;
-    
+
     /**
      * 订单更新时间
      */
@@ -101,48 +97,16 @@ public class Order {
     private String zipCode;
 
     /**
-     * 支付时间
-     */
-    @Column(name = "payment_time")
-    private LocalDateTime paymentTime;
-
-    /**
-     * 第三方交易号
-     */
-    @Column(name = "trade_no", length = 64)
-    private String tradeNo;
-    
-    /**
      * 订单取消原因
      */
     @Column(name = "cancel_reason", length = 200)
     private String cancelReason;
-    
+
     /**
      * 订单取消时间
      */
     @Column(name = "cancel_time")
     private LocalDateTime cancelTime;
-
-    /**
-     * 添加订单项
-     *
-     * @param item 要添加的订单项
-     */
-    public void addOrderItem(OrderItem item) {
-        items.add(item);
-        item.setOrder(this);
-    }
-
-    /**
-     * 移除订单项
-     *
-     * @param item 要移除的订单项
-     */
-    public void removeOrderItem(OrderItem item) {
-        items.remove(item);
-        item.setOrder(null);
-    }
 
     /**
      * 订单状态枚举
@@ -152,60 +116,50 @@ public class Order {
          * 待支付状态 - 订单已创建但尚未完成支付
          */
         PENDING,
-        
+
         /**
          * 已支付状态 - 订单已完成支付，等待处理
          */
         PAID,
-        
+
         /**
          * 处理中状态 - 订单正在处理，准备发货
          */
         PROCESSING,
-        
-        /**
-         * 已发货状态 - 卖家已发货，等待买家确认收货
-         */
-        SHIPPED,
-        
+
         /**
          * 已完成状态 - 买家已确认收货，订单完成
          */
         COMPLETED,
-        
+
         /**
          * 已取消状态 - 订单已被取消，可能是超时未支付或用户主动取消
          */
         CANCELLED,
-        
-        /**
-         * 支付失败状态 - 支付过程中出错
-         */
-        PAYMENT_FAILED,
-        
+
         /**
          * 支付超时状态 - 超时未支付
          */
         TIMEOUT,
-        
+
         /**
          * 退款中状态 - 订单正在办理退款
          */
         REFUNDING,
-        
+
         /**
          * 已退款状态 - 订单已退款
          */
         REFUNDED
     }
-    
+
     /**
      * 判断订单是否可取消
      */
     public boolean canCancel() {
         return status == OrderStatus.PENDING;
     }
-    
+
     /**
      * 判断订单是否可支付
      */
@@ -221,7 +175,7 @@ public class Order {
         createTime = LocalDateTime.now();
         updateTime = LocalDateTime.now();
     }
-    
+
     /**
      * 预更新方法
      */

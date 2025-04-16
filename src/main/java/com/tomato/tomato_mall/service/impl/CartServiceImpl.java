@@ -247,9 +247,6 @@ public class CartServiceImpl implements CartService {
     public void markCartItemsAsCheckedOut(List<Long> cartItemIds, Long orderId) {
         List<CartItem> cartItems = cartRepository.findAllById(cartItemIds);
         for (CartItem cartItem : cartItems) {
-            if (cartItem.getStatus() != CartItemStatus.ACTIVE) {
-                throw new IllegalStateException("购物车商品状态错误，无法结算");
-            }
             cartItem.setStatus(CartItemStatus.CHECKED_OUT);
             cartItem.setOrderId(orderId);
         }

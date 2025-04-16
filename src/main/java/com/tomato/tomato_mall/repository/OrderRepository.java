@@ -40,11 +40,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByUserIdAndStatus(Long userId, Order.OrderStatus status);
     
     /**
-     * 根据第三方交易号查找订单
-     */
-    Order findByTradeNo(String tradeNo);
-    
-    /**
      * 查询指定时间之前的待支付订单
      */
     List<Order> findByCreateTimeLessThanAndStatus(LocalDateTime time, Order.OrderStatus status);

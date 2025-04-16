@@ -283,6 +283,12 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalStateException("订单状态不允许支付");
         }
 
+        // 检测订单是否超时
+        LocalDateTime timeoutThreshold = LocalDateTime.now().minusMinutes(30);
+        if (order.getStatus() == OrderStatus.PENDING && order.getCreateTime().isBefore(timeoutThreshold)) {
+            throw new IllegalStateException("订单状态不允许支付");
+        }
+
         try {
             // 创建支付宝请求
             AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
@@ -348,7 +354,7 @@ public class OrderServiceImpl implements OrderService {
                     "RSA2");
 
             if (!signVerified) {
-                return false; // 签名验证失败
+                return false;
             }
 
             // 获取交易状态和订单ID
@@ -363,7 +369,6 @@ public class OrderServiceImpl implements OrderService {
             Order order = orderRepository.findById(orderId)
                     .orElseThrow(() -> new NoSuchElementException("订单不存在"));
 
-            // 根据交易状态处理支付结果
             if ("TRADE_SUCCESS".equals(tradeStatus) || "TRADE_FINISHED".equals(tradeStatus)) {
                 return processSuccessfulPayment(order, params);
             } else if ("TRADE_CLOSED".equals(tradeStatus)) {
@@ -539,7 +544,7 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderVO> getOrdersByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("用户不存在"));
-                
+
         List<Order> orders = orderRepository.findByUser(user);
         return orders.stream()
                 .map(this::convertToOrderVO)

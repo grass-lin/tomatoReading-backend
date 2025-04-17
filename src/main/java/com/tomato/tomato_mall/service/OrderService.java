@@ -34,11 +34,11 @@ public interface OrderService {
      *
      * @param username    用户名
      * @param checkoutDTO 结算数据传输对象，包含商品ID、配送地址和支付方式等信息
-     * @return 创建成功的订单视图对象
+     * @return 创建成功的订单详情视图对象
      * @throws IllegalArgumentException         当商品库存不足或数据无效时抛出此异常
      * @throws java.util.NoSuchElementException 当用户或商品不存在时抛出此异常
      */
-    OrderVO createOrder(String username, CheckoutDTO checkoutDTO);
+    OrderDetailVO createOrder(String username, CheckoutDTO checkoutDTO);
 
     /**
      * 发起订单支付
@@ -76,11 +76,11 @@ public interface OrderService {
      *
      * @param username       用户名
      * @param cancelOrderDTO 取消订单数据传输对象，包含订单ID和取消原因等信息
-     * @return 取消后的订单视图对象
+     * @return 取消后的订单详情视图对象
      * @throws java.util.NoSuchElementException 当订单不存在时抛出此异常
      * @throws IllegalStateException            当订单状态不允许取消时抛出此异常
      */
-    OrderVO cancelOrder(String username, CancelOrderDTO cancelOrderDTO);
+    OrderDetailVO cancelOrder(String username, CancelOrderDTO cancelOrderDTO);
 
     /**
      * 处理支付回调

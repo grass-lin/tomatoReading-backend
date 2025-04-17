@@ -121,7 +121,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional
-    public OrderVO createOrder(String username, CheckoutDTO checkoutDTO) {
+    public OrderDetailVO createOrder(String username, CheckoutDTO checkoutDTO) {
         // 获取用户信息
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("用户不存在"));
@@ -199,7 +199,7 @@ public class OrderServiceImpl implements OrderService {
         cartService.markCartItemsAsCheckedOut(cartItemIds, savedOrder.getId());
 
         // 返回订单视图对象
-        return convertToOrderVO(savedOrder);
+        return convertToOrderDetailVO(savedOrder);
     }
 
     /**
@@ -219,7 +219,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional
-    public OrderVO cancelOrder(String username, CancelOrderDTO cancelOrderDTO) {
+    public OrderDetailVO cancelOrder(String username, CancelOrderDTO cancelOrderDTO) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("用户不存在"));
 
@@ -256,7 +256,7 @@ public class OrderServiceImpl implements OrderService {
         // 恢复购物车项到活跃状态
         cartService.restoreCartItemsByOrderId(order.getId());
 
-        return convertToOrderVO(order);
+        return convertToOrderDetailVO(order);
     }
 
     /**

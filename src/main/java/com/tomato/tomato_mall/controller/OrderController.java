@@ -140,9 +140,9 @@ public class OrderController {
      * @throws IllegalStateException 当订单状态不允许取消时抛出
      */
     @DeleteMapping
-    public ResponseEntity<ResponseVO<OrderVO>> cancelOrder(@Valid @RequestBody CancelOrderDTO cancelOrderDTO) {
+    public ResponseEntity<ResponseVO<OrderDetailVO>> cancelOrder(@Valid @RequestBody CancelOrderDTO cancelOrderDTO) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        OrderVO orderVO = orderService.cancelOrder(username, cancelOrderDTO);
-        return ResponseEntity.ok(ResponseVO.success(orderVO));
+        OrderDetailVO orderDetailVO = orderService.cancelOrder(username, cancelOrderDTO);
+        return ResponseEntity.ok(ResponseVO.success(orderDetailVO));
     }
 }

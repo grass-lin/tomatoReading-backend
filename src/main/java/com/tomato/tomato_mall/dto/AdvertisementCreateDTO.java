@@ -17,7 +17,7 @@ import lombok.Data;
  * 2. 在控制器和服务层之间传递广告创建数据
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Data

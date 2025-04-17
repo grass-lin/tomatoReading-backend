@@ -25,7 +25,7 @@ import java.util.List;
  * 管理员角色拥有创建、更新和删除商品的权限
  * </p>
  * 
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @RestController

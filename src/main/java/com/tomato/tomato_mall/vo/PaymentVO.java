@@ -17,7 +17,7 @@ import java.math.BigDecimal;
  * 主要用于支付流程的第二步，前端通过该对象获取支付表单并展示给用户。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Data

@@ -10,7 +10,7 @@ import lombok.Data;
  * 该DTO封装了更新收货地址所需的数据。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Data

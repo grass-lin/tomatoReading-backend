@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * 该类实现了{@link ShippingAddressService}接口，提供收货地址的创建、查询、更新和删除等核心功能。
  * </p>
  * 
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Service

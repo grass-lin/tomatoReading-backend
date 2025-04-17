@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * 包含广告信息处理、商品关联验证和数据转换等业务逻辑的具体实现。
  * </p>
  * 
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Service

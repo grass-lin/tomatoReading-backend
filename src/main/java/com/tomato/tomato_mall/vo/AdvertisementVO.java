@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
  * 2. 前端广告展示和管理界面
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Data

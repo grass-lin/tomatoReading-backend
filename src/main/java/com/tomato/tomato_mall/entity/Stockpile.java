@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
  * 实体使用Lombok注解简化了代码，自动生成了getter、setter、equals、hashCode和toString方法。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  * @see Product
  */

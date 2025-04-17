@@ -12,7 +12,7 @@ import java.util.List;
  * 该接口定义了收货地址管理的核心业务功能，包括收货地址的创建、查询、更新和删除等操作。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 public interface ShippingAddressService {

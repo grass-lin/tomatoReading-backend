@@ -14,7 +14,7 @@ import com.tomato.tomato_mall.vo.StockpileVO;
  * 以完成库存信息的持久化和相关业务逻辑处理，如库存变更记录、库存预警等。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  * @see com.tomato.tomato_mall.repository.StockpileRepository
  * @see com.tomato.tomato_mall.service.ProductService

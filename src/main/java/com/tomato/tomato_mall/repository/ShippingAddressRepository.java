@@ -13,7 +13,7 @@ import java.util.List;
  * 该接口负责ShippingAddress实体的数据库访问操作，提供基础的CRUD功能以及根据用户查询地址的方法。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Repository

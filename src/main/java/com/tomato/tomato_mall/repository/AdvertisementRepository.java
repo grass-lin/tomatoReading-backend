@@ -18,7 +18,7 @@ import java.util.List;
  * 相关的持久化操作都通过此接口进行。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Repository

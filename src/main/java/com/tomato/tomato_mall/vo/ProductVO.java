@@ -19,7 +19,7 @@ import java.util.List;
  * 4. 商品管理后台的数据展示和操作
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  * @see SpecificationVO
  */

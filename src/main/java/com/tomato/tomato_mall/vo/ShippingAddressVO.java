@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
  * 用于前端展示的收货地址信息数据结构，不包含敏感字段。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Data

@@ -27,9 +27,12 @@ import com.tomato.tomato_mall.repository.StockpileRepository;
 import com.tomato.tomato_mall.repository.UserRepository;
 import com.tomato.tomato_mall.service.OrderService;
 import com.tomato.tomato_mall.util.JsonUtils;
+import com.tomato.tomato_mall.vo.OrderDetailVO;
+import com.tomato.tomato_mall.vo.OrderItemVO;
 import com.tomato.tomato_mall.vo.OrderVO;
 import com.tomato.tomato_mall.vo.PaymentVO;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -513,21 +516,27 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 根据ID获取订单
+     * 根据ID获取订单详情
      * <p>
-     * 查询指定ID的订单详细信息，并转换为前端展示所需的视图对象。
+     * 查询指定ID的订单详细信息，包括订单基本信息和关联的所有订单项，
+     * 并转换为前端展示所需的详细视图对象。
      * </p>
      * 
      * @param orderId 订单ID
-     * @return 订单视图对象
+     * @return 包含订单项的详细订单视图对象
      * @throws NoSuchElementException 当指定ID的订单不存在时抛出此异常
      */
     @Override
-    public OrderVO getOrderById(String orderId) {
+    public OrderDetailVO getOrderById(String orderId) {
         Long orderIdLong = Long.parseLong(orderId);
         Order order = orderRepository.findById(orderIdLong)
                 .orElseThrow(() -> new NoSuchElementException("订单不存在"));
-        return convertToOrderVO(order);
+
+        // 确保订单项被加载
+        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
+        order.setItems(orderItems);
+
+        return convertToOrderDetailVO(order);
     }
 
     /**
@@ -547,6 +556,23 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new NoSuchElementException("用户不存在"));
 
         List<Order> orders = orderRepository.findByUser(user);
+        return orders.stream()
+                .map(this::convertToOrderVO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取所有订单
+     * <p>
+     * 获取系统中的所有订单信息，主要用于管理员查看和统计分析。
+     * 将订单实体列表转换为订单视图对象列表返回。
+     * </p>
+     *
+     * @return 系统中所有订单的视图对象列表
+     */
+    @Override
+    public List<OrderVO> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
         return orders.stream()
                 .map(this::convertToOrderVO)
                 .collect(Collectors.toList());
@@ -609,14 +635,51 @@ public class OrderServiceImpl implements OrderService {
      * @return 转换后的订单视图对象
      */
     private OrderVO convertToOrderVO(Order order) {
-        return OrderVO.builder()
-                .orderId(order.getId().toString())
-                .userId(order.getUser().getId().toString())
-                .totalAmount(order.getTotalAmount())
-                .paymentMethod(order.getPaymentMethod())
-                .createTime(order.getCreateTime())
-                .status(order.getStatus().toString())
-                .build();
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(order, orderVO);
+        orderVO.setUsername(order.getUser().getUsername());
+        orderVO.setStatus(order.getStatus().toString());
+        return orderVO;
+    }
+
+    /**
+     * 将订单实体转换为详细视图对象
+     * <p>
+     * 封装订单实体到前端展示层所需的详细数据结构，
+     * 提取订单的全部信息和所有订单项信息。
+     * </p>
+     * 
+     * @param order 要转换的订单实体
+     * @return 转换后的详细订单视图对象
+     */
+    private OrderDetailVO convertToOrderDetailVO(Order order) {
+        OrderDetailVO orderDetailVO = new OrderDetailVO();
+        BeanUtils.copyProperties(order, orderDetailVO);
+        orderDetailVO.setUsername(order.getUser().getUsername());
+        orderDetailVO.setStatus(order.getStatus().toString());
+        List<OrderItemVO> orderItemVOs = order.getItems().stream().map(this::convertToOrderItemVO)
+                .collect(Collectors.toList());
+        orderDetailVO.setItems(orderItemVOs);
+        return orderDetailVO;
+    }
+
+    /**
+     * 将订单项实体转换为视图对象
+     * <p>
+     * 封装订单项实体到前端展示层所需的数据结构，
+     * 提取订单项的ID、商品ID、商品名称、价格、数量、小计金额和状态等信息。
+     * 该方法用于在订单详情查询中转换订单项数据。
+     * </p>
+     * 
+     * @param orderItem 要转换的订单项实体
+     * @return 转换后的订单项视图对象
+     */
+    private OrderItemVO convertToOrderItemVO(OrderItem orderItem) {
+        OrderItemVO orderItemVO = new OrderItemVO();
+        BeanUtils.copyProperties(orderItem, orderItemVO);
+        orderItemVO.setProductId(orderItem.getProduct().getId());
+        orderItemVO.setStatus(orderItem.getStatus().toString());
+        return orderItemVO;
     }
 
 }

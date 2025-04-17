@@ -3,6 +3,7 @@ package com.tomato.tomato_mall.service;
 import com.tomato.tomato_mall.dto.CancelOrderDTO;
 import com.tomato.tomato_mall.dto.CheckoutDTO;
 import com.tomato.tomato_mall.dto.PaymentCallbackDTO;
+import com.tomato.tomato_mall.vo.OrderDetailVO;
 import com.tomato.tomato_mall.vo.OrderVO;
 import com.tomato.tomato_mall.vo.PaymentVO;
 
@@ -19,7 +20,7 @@ import java.util.List;
  * 以完成订单处理的各个环节，确保交易的一致性和安全性。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 public interface OrderService {
@@ -56,14 +57,15 @@ public interface OrderService {
     /**
      * 查询订单详情
      * <p>
-     * 根据订单ID查询订单的详细信息，包括订单状态、金额、商品清单等。
+     * 根据订单ID查询订单的详细信息，包括订单状态、金额、商品清单等全部内容。
+     * 返回的订单详情视图对象包含完整的订单信息和所有订单项。
      * </p>
      *
      * @param orderId 订单ID
-     * @return 订单视图对象
+     * @return 详细订单视图对象，包含订单项信息
      * @throws java.util.NoSuchElementException 当订单不存在时抛出此异常
      */
-    OrderVO getOrderById(String orderId);
+    OrderDetailVO getOrderById(String orderId);
 
     /**
      * 取消订单
@@ -104,4 +106,15 @@ public interface OrderService {
      * @throws java.util.NoSuchElementException 当用户不存在时抛出此异常
      */
     List<OrderVO> getOrdersByUsername(String username);
+
+    /**
+     * 获取所有订单
+     * <p>
+     * 获取系统中的所有订单信息，通常用于管理员查看或统计分析。
+     * 返回所有订单的视图对象列表。
+     * </p>
+     *
+     * @return 系统中所有订单的视图对象列表
+     */
+    List<OrderVO> getAllOrders();
 }

@@ -10,7 +10,7 @@ import lombok.Data;
  * 该DTO封装了收货地址的详细信息，包括收货人姓名、联系电话、详细地址和邮政编码等。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Data

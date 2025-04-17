@@ -3,6 +3,7 @@ package com.tomato.tomato_mall.controller;
 import com.tomato.tomato_mall.dto.CancelOrderDTO;
 import com.tomato.tomato_mall.dto.PaymentCallbackDTO;
 import com.tomato.tomato_mall.service.OrderService;
+import com.tomato.tomato_mall.vo.OrderDetailVO;
 import com.tomato.tomato_mall.vo.OrderVO;
 import com.tomato.tomato_mall.vo.PaymentVO;
 import com.tomato.tomato_mall.vo.ResponseVO;
@@ -29,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
  * 所有接口返回统一的ResponseVO格式，包含状态码、消息和数据
  * </p>
  * 
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @RestController
@@ -122,9 +123,9 @@ public class OrderController {
      * @throws java.util.NoSuchElementException 当订单不存在时抛出
      */
     @GetMapping("/{orderId}")
-    public ResponseEntity<ResponseVO<OrderVO>> getOrderDetail(@PathVariable String orderId) {
-        OrderVO orderVO = orderService.getOrderById(orderId);
-        return ResponseEntity.ok(ResponseVO.success(orderVO));
+    public ResponseEntity<ResponseVO<OrderDetailVO>> getOrderDetail(@PathVariable String orderId) {
+        OrderDetailVO orderDetailVO = orderService.getOrderById(orderId);
+        return ResponseEntity.ok(ResponseVO.success(orderDetailVO));
     }
 
     /**

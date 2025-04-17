@@ -141,16 +141,6 @@ public class Order {
          * 支付超时状态 - 超时未支付
          */
         TIMEOUT,
-
-        /**
-         * 退款中状态 - 订单正在办理退款
-         */
-        REFUNDING,
-
-        /**
-         * 已退款状态 - 订单已退款
-         */
-        REFUNDED
     }
 
     /**

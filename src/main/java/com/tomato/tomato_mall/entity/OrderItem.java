@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderItem {
-    
+
     /**
      * 订单项ID
      */
@@ -67,20 +67,20 @@ public class OrderItem {
      */
     @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
-    
+
     /**
      * 订单项状态
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private OrderItemStatus status = OrderItemStatus.PENDING;
-    
+
     /**
      * 原购物车项ID，用于追踪来源
      */
     @Column(name = "cart_item_id")
     private Long cartItemId;
-    
+
     /**
      * 最后更新时间
      */
@@ -95,41 +95,27 @@ public class OrderItem {
          * 待支付状态 - 订单已创建，等待支付
          */
         PENDING,
-        
+
         /**
          * 已支付状态 - 订单已支付，等待发货
          */
         PAID,
-        
+
         /**
          * 已发货状态 - 商品已发货，等待收货
          */
         SHIPPED,
-        
+
         /**
          * 已完成状态 - 订单已完成
          */
         COMPLETED,
-        
+
         /**
          * 已取消状态 - 订单已取消
          */
         CANCELLED,
-        
-        /**
-         * 支付失败状态 - 支付失败
-         */
-        PAYMENT_FAILED,
-        
-        /**
-         * 退款中状态 - 申请退款处理中
-         */
-        REFUNDING,
-        
-        /**
-         * 已退款状态 - 退款完成
-         */
-        REFUNDED
+
     }
 
     /**
@@ -154,7 +140,7 @@ public class OrderItem {
         updateSubtotal();
         updateTime = LocalDateTime.now();
     }
-    
+
     @PreUpdate
     protected void onUpdate() {
         updateSubtotal();

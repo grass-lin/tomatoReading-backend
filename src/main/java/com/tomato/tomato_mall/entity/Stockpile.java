@@ -50,7 +50,7 @@ public class Stockpile {
      * </p>
      */
     @Column(nullable = false)
-    private Integer amount;
+    private Integer amount = 0;
 
     /**
      * 冻结库存数量
@@ -61,7 +61,7 @@ public class Stockpile {
      * </p>
      */
     @Column(nullable = false)
-    private Integer frozen;
+    private Integer frozen = 0;
 
     /**
      * 关联的商品

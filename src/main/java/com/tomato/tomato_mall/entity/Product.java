@@ -4,10 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import java.math.BigDecimal;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 商品实体类
@@ -109,10 +108,8 @@ public class Product {
      * 当删除商品时，级联删除关联的规格记录。
      * </p>
      */
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Specification> specifications;
+    private List<Specification> specifications = new ArrayList<>();
 
     /**
      * 商品库存
@@ -123,4 +120,42 @@ public class Product {
      */
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Stockpile stockpile;
+
+    /**
+     * 商品状态
+     * <p>
+     * 商品的当前状态，使用枚举类型表示。
+     * 默认值为ACTIVE，表示商品正常销售中。
+     * </p>
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ProductStatus status = ProductStatus.ACTIVE;
+
+    /**
+     * 商品状态枚举
+     * <p>
+     * 定义了商品的可能状态，包括：
+     * ACTIVE - 正常销售中
+     * INACTIVE - 暂停销售
+     * DELETED - 逻辑删除
+     * </p>
+     */
+    public enum ProductStatus {
+        /**
+         * 活跃状态 - 正常销售中
+         */
+        ACTIVE,
+
+        /**
+         * 下架状态 - 暂停销售
+         */
+        INACTIVE,
+
+        /**
+         * 已删除状态 - 逻辑删除
+         */
+        DELETED
+    }
+
 }

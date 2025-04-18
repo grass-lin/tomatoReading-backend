@@ -86,6 +86,4 @@ public interface ProductService {
      * @throws java.util.NoSuchElementException 当指定ID的商品不存在时抛出此异常
      */
     void deleteProduct(Long id);
-
-    void deleteSpecification(Long specificationId);
 }

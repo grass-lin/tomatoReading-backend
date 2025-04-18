@@ -41,7 +41,7 @@ public class OrderItem {
      * 关联的商品
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "product_id")
     private Product product;
 
     /**

@@ -677,7 +677,6 @@ public class OrderServiceImpl implements OrderService {
     private OrderItemVO convertToOrderItemVO(OrderItem orderItem) {
         OrderItemVO orderItemVO = new OrderItemVO();
         BeanUtils.copyProperties(orderItem, orderItemVO);
-        orderItemVO.setProductId(orderItem.getProduct().getId());
         orderItemVO.setStatus(orderItem.getStatus().toString());
         return orderItemVO;
     }

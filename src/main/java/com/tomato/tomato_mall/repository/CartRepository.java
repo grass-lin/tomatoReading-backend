@@ -25,7 +25,7 @@ import java.util.Optional;
  */
 @Repository
 public interface CartRepository extends JpaRepository<CartItem, Long> {
-    
+
     /**
      * 根据用户查找所有购物车商品
      * <p>
@@ -37,7 +37,7 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * @return 用户购物车中的所有商品列表
      */
     List<CartItem> findByUser(User user);
-    
+
     /**
      * 根据用户ID查找所有购物车商品
      * <p>
@@ -49,7 +49,7 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * @return 用户购物车中的所有商品列表
      */
     List<CartItem> findByUserId(Long userId);
-    
+
     /**
      * 根据用户和商品查找购物车商品
      * <p>
@@ -57,12 +57,12 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * 会自动转换为相应的SQL查询。
      * </p>
      *
-     * @param user 要查询的用户
+     * @param user    要查询的用户
      * @param product 要查询的商品
      * @return 封装在Optional中的购物车商品实体；如果不存在则返回空Optional
      */
     Optional<CartItem> findByUserAndProduct(User user, Product product);
-    
+
     /**
      * 根据用户ID和商品ID查找购物车商品
      * <p>
@@ -70,12 +70,12 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * 会自动转换为相应的SQL查询。
      * </p>
      *
-     * @param userId 要查询的用户ID
+     * @param userId    要查询的用户ID
      * @param productId 要查询的商品ID
      * @return 封装在Optional中的购物车商品实体；如果不存在则返回空Optional
      */
     Optional<CartItem> findByUserIdAndProductId(Long userId, Long productId);
-    
+
     /**
      * 删除用户购物车中的指定商品
      * <p>
@@ -83,11 +83,11 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * 会自动转换为相应的SQL查询。
      * </p>
      *
-     * @param user 用户
+     * @param user    用户
      * @param product 要删除的商品
      */
     void deleteByUserAndProduct(User user, Product product);
-    
+
     /**
      * 删除用户购物车中的指定商品
      * <p>
@@ -95,11 +95,11 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * 会自动转换为相应的SQL查询。
      * </p>
      *
-     * @param userId 用户ID
+     * @param userId    用户ID
      * @param productId 要删除的商品ID
      */
     void deleteByUserIdAndProductId(Long userId, Long productId);
-    
+
     /**
      * 删除用户购物车中的所有商品
      * <p>
@@ -110,7 +110,7 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * @param user 用户
      */
     void deleteByUser(User user);
-    
+
     /**
      * 删除用户购物车中的所有商品
      * <p>
@@ -121,7 +121,7 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * @param userId 用户ID
      */
     void deleteByUserId(Long userId);
-    
+
     /**
      * 根据用户和状态查找购物车商品
      * <p>
@@ -129,12 +129,12 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * 会自动转换为相应的SQL查询。
      * </p>
      *
-     * @param user 要查询的用户
+     * @param user   要查询的用户
      * @param status 要查询的状态
      * @return 用户购物车中指定状态的商品列表
      */
     List<CartItem> findByUserAndStatus(User user, CartItem.CartItemStatus status);
-    
+
     /**
      * 根据用户、商品和状态查找购物车商品
      * <p>
@@ -142,13 +142,13 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * 会自动转换为相应的SQL查询。
      * </p>
      *
-     * @param user 要查询的用户
+     * @param user    要查询的用户
      * @param product 要查询的商品
-     * @param status 要查询的状态
+     * @param status  要查询的状态
      * @return 封装在Optional中的购物车商品实体；如果不存在则返回空Optional
      */
     Optional<CartItem> findByUserAndProductAndStatus(User user, Product product, CartItem.CartItemStatus status);
-    
+
     /**
      * 根据订单ID和状态查找购物车商品
      * <p>
@@ -157,8 +157,16 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * </p>
      *
      * @param orderId 要查询的订单ID
-     * @param status 要查询的状态
+     * @param status  要查询的状态
      * @return 订单中指定状态的商品列表
      */
     List<CartItem> findByOrderIdAndStatus(Long orderId, CartItem.CartItemStatus status);
+
+    /**
+     * 根据商品ID查找购物车项
+     * 
+     * @param productId 商品ID
+     * @return 相关的购物车项列表
+     */
+    List<CartItem> findByProductId(Long productId);
 }

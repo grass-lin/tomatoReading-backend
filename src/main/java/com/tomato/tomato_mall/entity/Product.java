@@ -148,11 +148,6 @@ public class Product {
         ACTIVE,
 
         /**
-         * 下架状态 - 暂停销售
-         */
-        INACTIVE,
-
-        /**
          * 已删除状态 - 逻辑删除
          */
         DELETED

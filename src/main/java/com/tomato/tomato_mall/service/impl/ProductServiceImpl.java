@@ -9,8 +9,8 @@ import com.tomato.tomato_mall.entity.Product.ProductStatus;
 import com.tomato.tomato_mall.entity.Specification;
 import com.tomato.tomato_mall.entity.Stockpile;
 import com.tomato.tomato_mall.entity.CartItem.CartItemStatus;
-import com.tomato.tomato_mall.entity.OrderItem;
 import com.tomato.tomato_mall.entity.OrderItem.OrderItemStatus;
+import com.tomato.tomato_mall.repository.AdvertisementRepository;
 import com.tomato.tomato_mall.repository.CartRepository;
 import com.tomato.tomato_mall.repository.OrderItemRepository;
 import com.tomato.tomato_mall.repository.ProductRepository;
@@ -47,13 +47,13 @@ public class ProductServiceImpl implements ProductService {
     private final StockpileRepository stockpileRepository;
     private final CartRepository cartRepository;
     private final OrderItemRepository orderItemRepository;
+    private final AdvertisementRepository advertisementRepository;
 
     /**
      * 构造函数，通过依赖注入初始化商品服务组件
      * 
      * @param productRepository       商品数据访问对象，负责商品数据的持久化操作
      * @param specificationRepository 规格数据访问对象，负责规格数据的持久化操作
-     * @param stockpileRepository     库存数据访问对象，负责库存数据的持久化操作
      * @param cartRepository          购物车项数据访问对象，负责购物车数据的持久化操作
      * @param orderItemRepository     订单项数据访问对象，负责订单项数据的持久化操作
      */
@@ -62,12 +62,14 @@ public class ProductServiceImpl implements ProductService {
             SpecificationRepository specificationRepository,
             StockpileRepository stockpileRepository,
             CartRepository cartRepository,
-            OrderItemRepository orderItemRepository) {
+            OrderItemRepository orderItemRepository,
+            AdvertisementRepository advertisementRepository) {
         this.productRepository = productRepository;
         this.specificationRepository = specificationRepository;
         this.stockpileRepository = stockpileRepository;
         this.cartRepository = cartRepository;
         this.orderItemRepository = orderItemRepository;
+        this.advertisementRepository = advertisementRepository;
     }
 
     /**
@@ -79,34 +81,79 @@ public class ProductServiceImpl implements ProductService {
      * 
      * @param createDTO 商品创建数据传输对象，包含创建所需的商品信息
      * @return 创建成功的商品视图对象
-     * @throws IllegalArgumentException 当商品标题已存在时抛出此异常，确保商品标题在系统中的唯一性
      */
     @Override
     @Transactional
     public ProductVO createProduct(ProductCreateDTO createDTO) {
-
         Product product = new Product();
         BeanUtils.copyProperties(createDTO, product);
-        Product saveProduct = productRepository.save(product);
 
         List<Specification> specifications = createDTO.getSpecifications().stream()
                 .map(specDTO -> {
                     Specification spec = new Specification();
                     BeanUtils.copyProperties(specDTO, spec);
-                    spec.setProduct(saveProduct);
+                    spec.setProduct(product);
                     return spec;
                 })
                 .collect(Collectors.toList());
-        specificationRepository.saveAll(specifications);
-
-        saveProduct.setSpecifications(specifications);
-        productRepository.save(saveProduct);
+        product.setSpecifications(specifications);
 
         Stockpile stockpile = new Stockpile();
-        stockpile.setProduct(saveProduct);
-        stockpileRepository.save(stockpile);
+        stockpile.setProduct(product);
+        product.setStockpile(stockpile);
 
-        return convertToProductVO(saveProduct);
+        Product savedProduct = productRepository.save(product);
+
+        return convertToProductVO(savedProduct);
+    }
+
+    /**
+     * 删除商品
+     * <p>
+     * 删除指定ID的商品记录及其相关联的规格和库存信息。
+     * 使用事务确保数据一致性，防止部分删除导致的数据异常。
+     * 此方法执行的是逻辑删除。
+     * </p>
+     * 
+     * @param id 要删除的商品ID
+     * @throws NoSuchElementException 当要删除的商品不存在时抛出此异常
+     */
+    @Override
+    @Transactional
+    public void deleteProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("商品不存在"));
+
+        if (product.getStatus().equals(ProductStatus.DELETED)) {
+            throw new NoSuchElementException("商品不存在");
+        }
+
+        if (orderItemRepository.existsByProductIdAndStatus(id, OrderItemStatus.PENDING)) {
+            throw new IllegalStateException("商品已被订单占用，无法删除");
+        }
+
+        // 处理购物车项
+        List<CartItem> cartItems = cartRepository.findByProductIdAndStatusNot(
+                id, CartItemStatus.COMPLETED);
+        cartItems.forEach(item -> {
+            item.setStatus(CartItemStatus.CANCELLED);
+        });
+        cartRepository.saveAll(cartItems);
+
+        // 删除规格
+        product.getSpecifications().clear();
+
+        // 删除库存
+        Stockpile stockpile = product.getStockpile();
+        if (stockpile != null) {
+            product.setStockpile(null);
+            stockpileRepository.delete(stockpile);
+        }
+
+        // 删除广告
+        advertisementRepository.deleteAllByProduct(product);
+
+        product.setStatus(ProductStatus.DELETED);
     }
 
     /**
@@ -251,39 +298,6 @@ public class ProductServiceImpl implements ProductService {
                 existingSpecs.add(savedSpec);
             }
         }
-    }
-
-    /**
-     * 删除商品
-     * <p>
-     * 删除指定ID的商品记录及其相关联的规格和库存信息。
-     * 使用事务确保数据一致性，防止部分删除导致的数据异常。
-     * 此方法执行的是逻辑删除。
-     * </p>
-     * 
-     * @param id 要删除的商品ID
-     * @throws NoSuchElementException 当要删除的商品不存在时抛出此异常
-     */
-    @Override
-    @Transactional
-    public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("商品不存在"));
-
-        List<CartItem> cartItems = cartRepository.findByProductId(id);
-        for (CartItem cartItem : cartItems) {
-            if (cartItem.getStatus() != CartItemStatus.COMPLETED) {
-                cartItem.setStatus(CartItemStatus.CANCELLED);
-                cartRepository.save(cartItem);
-            }
-        }
-        for (OrderItem orderItem : orderItemRepository.findByProductId(id)) {
-            if (orderItem.getStatus().equals(OrderItemStatus.PENDING)) {
-                throw new IllegalArgumentException("商品已被订单占用，无法删除");
-            }
-        }
-
-        product.setStatus(ProductStatus.DELETED);
     }
 
     /**

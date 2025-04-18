@@ -46,6 +46,16 @@ public interface AdvertisementRepository extends JpaRepository<Advertisement, Lo
     List<Advertisement> findByTitleContaining(String keyword);
 
     /**
+     * 根据商品删除所有广告
+     * <p>
+     * 用于删除与特定商品关联的所有广告记录，通常在删除商品时调用。
+     * </p>
+     * 
+     * @param product
+     */
+    void deleteAllByProduct(Product product);
+
+    /**
      * 检查指定商品的广告数量
      * <p>
      * 用于统计特定商品关联的广告数量，可用于限制每个商品的最大广告数。

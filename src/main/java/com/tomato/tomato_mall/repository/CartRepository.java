@@ -1,6 +1,7 @@
 package com.tomato.tomato_mall.repository;
 
 import com.tomato.tomato_mall.entity.CartItem;
+import com.tomato.tomato_mall.entity.CartItem.CartItemStatus;
 import com.tomato.tomato_mall.entity.User;
 import com.tomato.tomato_mall.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -169,4 +170,12 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
      * @return 相关的购物车项列表
      */
     List<CartItem> findByProductId(Long productId);
+
+    /**
+     * 根据商品ID和状态查找购物车项
+     * @param productId
+     * @param status
+     * @return
+     */
+    List<CartItem> findByProductIdAndStatusNot(Long productId, CartItemStatus status);
 }

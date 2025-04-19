@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
  * @see Product
  */
 @Entity
-@Table(name = "carts")
+@Table(name = "cart_items")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -80,6 +80,13 @@ public class CartItem {
     private Product product;
 
     /**
+     * 关联的订单项
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_item_id", nullable = true)
+    private OrderItem orderItem;
+
+    /**
      * 购物车商品状态
      * <p>
      * 用于追踪购物车商品的生命周期。
@@ -88,12 +95,6 @@ public class CartItem {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private CartItemStatus status = CartItemStatus.ACTIVE;
-
-    /**
-     * 关联的订单ID，用于从已结算的购物车项跟踪到对应的订单
-     */
-    @Column(name = "order_id")
-    private Long orderId;
 
     /**
      * 最后更新时间

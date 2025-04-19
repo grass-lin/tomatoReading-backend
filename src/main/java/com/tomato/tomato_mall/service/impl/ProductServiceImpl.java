@@ -2,13 +2,13 @@ package com.tomato.tomato_mall.service.impl;
 
 import com.tomato.tomato_mall.dto.ProductCreateDTO;
 import com.tomato.tomato_mall.dto.ProductUpdateDTO;
-import com.tomato.tomato_mall.dto.SpecificationDTO;
 import com.tomato.tomato_mall.entity.CartItem;
 import com.tomato.tomato_mall.entity.Product;
 import com.tomato.tomato_mall.entity.Product.ProductStatus;
 import com.tomato.tomato_mall.entity.Specification;
 import com.tomato.tomato_mall.entity.Stockpile;
 import com.tomato.tomato_mall.entity.CartItem.CartItemStatus;
+import com.tomato.tomato_mall.entity.OrderItem;
 import com.tomato.tomato_mall.entity.OrderItem.OrderItemStatus;
 import com.tomato.tomato_mall.repository.AdvertisementRepository;
 import com.tomato.tomato_mall.repository.CartRepository;
@@ -26,10 +26,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +44,6 @@ import java.util.stream.Collectors;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final SpecificationRepository specificationRepository;
     private final StockpileRepository stockpileRepository;
     private final CartRepository cartRepository;
     private final OrderItemRepository orderItemRepository;
@@ -56,9 +53,9 @@ public class ProductServiceImpl implements ProductService {
      * 构造函数，通过依赖注入初始化商品服务组件
      * 
      * @param productRepository       商品数据访问对象，负责商品数据的持久化操作
-     * @param specificationRepository 规格数据访问对象，负责规格数据的持久化操作
      * @param cartRepository          购物车项数据访问对象，负责购物车数据的持久化操作
      * @param orderItemRepository     订单项数据访问对象，负责订单项数据的持久化操作
+     * @param advertisementRepository 广告数据访问对象，负责广告数据的持久化操作
      */
     public ProductServiceImpl(
             ProductRepository productRepository,
@@ -68,7 +65,6 @@ public class ProductServiceImpl implements ProductService {
             OrderItemRepository orderItemRepository,
             AdvertisementRepository advertisementRepository) {
         this.productRepository = productRepository;
-        this.specificationRepository = specificationRepository;
         this.stockpileRepository = stockpileRepository;
         this.cartRepository = cartRepository;
         this.orderItemRepository = orderItemRepository;
@@ -101,8 +97,6 @@ public class ProductServiceImpl implements ProductService {
                     })
                     .collect(Collectors.toList());
             product.setSpecifications(specifications);
-        } else {
-            product.setSpecifications(new ArrayList<>());
         }
 
         Stockpile stockpile = new Stockpile();
@@ -147,6 +141,13 @@ public class ProductServiceImpl implements ProductService {
         });
         cartRepository.saveAll(cartItems);
 
+        // 处理订单项
+        List<OrderItem> orderItems = orderItemRepository.findByProductId(id);
+        orderItems.forEach(item -> {
+            item.setProduct(null);
+        });
+        orderItemRepository.saveAll(orderItems);
+
         // 删除规格
         product.getSpecifications().clear();
 
@@ -161,44 +162,6 @@ public class ProductServiceImpl implements ProductService {
         advertisementRepository.deleteAllByProduct(product);
 
         product.setStatus(ProductStatus.DELETED);
-    }
-
-    /**
-     * 获取所有商品
-     * <p>
-     * 查询所有商品信息，并转换为前端展示所需的视图对象列表。
-     * 此方法不会过滤任何商品，返回数据库中的所有商品记录。
-     * </p>
-     * 
-     * @return 所有商品的视图对象列表
-     */
-    @Override
-    public List<ProductVO> getAllProducts() {
-        List<Product> products = productRepository.findByStatus(ProductStatus.ACTIVE);
-        return products.stream()
-                .map(this::convertToProductVO)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 根据ID获取商品
-     * <p>
-     * 查询指定ID的商品详细信息，包括规格信息。
-     * 此方法会检查商品是否存在，不存在则抛出异常。
-     * </p>
-     * 
-     * @param id 要查询的商品ID
-     * @return 商品的视图对象
-     * @throws NoSuchElementException 当指定ID的商品不存在时抛出此异常
-     */
-    @Override
-    public ProductVO getProductById(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
-        if (!product.getStatus().equals(ProductStatus.ACTIVE)) {
-            throw new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND);
-        }
-        return convertToProductVO(product);
     }
 
     /**
@@ -248,9 +211,18 @@ public class ProductServiceImpl implements ProductService {
             product.setDetail(updateDTO.getDetail());
         }
 
-        // 处理规格更新
+        // 处理规格更新, 替换更新
         if (updateDTO.getSpecifications() != null) {
-            updateProductSpecifications(product, updateDTO.getSpecifications());
+            product.getSpecifications().clear();
+            List<Specification> specifications = updateDTO.getSpecifications().stream()
+                    .map(specDTO -> {
+                        Specification spec = new Specification();
+                        BeanUtils.copyProperties(specDTO, spec);
+                        spec.setProduct(product);
+                        return spec;
+                    })
+                    .collect(Collectors.toList());
+            product.setSpecifications(specifications);
         }
 
         Product updateProduct = productRepository.save(product);
@@ -258,53 +230,41 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * 更新商品规格信息
+     * 获取所有商品
      * <p>
-     * 替换更新规格信息
+     * 查询所有商品信息，并转换为前端展示所需的视图对象列表。
+     * 此方法不会过滤任何商品，返回数据库中的所有商品记录。
      * </p>
      * 
-     * @param product        要更新规格的商品
-     * @param specifications 规格信息列表
+     * @return 所有商品的视图对象列表
      */
-    private void updateProductSpecifications(Product product, List<SpecificationDTO> specifications) {
-        List<Specification> existingSpecs = product.getSpecifications();
-
-        // 删除规格
-        Set<String> dtoSpecItems = specifications.stream()
-                .map(SpecificationDTO::getItem)
-                .collect(Collectors.toSet());
-
-        List<Specification> specsToRemove = existingSpecs.stream()
-                .filter(spec -> !dtoSpecItems.contains(spec.getItem()))
+    @Override
+    public List<ProductVO> getAllProducts() {
+        List<Product> products = productRepository.findByStatus(ProductStatus.ACTIVE);
+        return products.stream()
+                .map(this::convertToProductVO)
                 .collect(Collectors.toList());
-        for (Specification spec : specsToRemove) {
-            existingSpecs.remove(spec);
-            specificationRepository.delete(spec);
-        }
+    }
 
-        // 更新规格
-        for (SpecificationDTO specDTO : specifications) {
-            // 查找匹配的现有规格
-            Specification matchingSpec = existingSpecs.stream()
-                    .filter(spec -> spec.getItem().equals(specDTO.getItem()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (matchingSpec != null) {
-                // 更新现有规格
-                if (specDTO.getValue() != null) {
-                    matchingSpec.setValue(specDTO.getValue());
-                    specificationRepository.save(matchingSpec);
-                }
-            } else {
-                // 创建新规格
-                Specification newSpec = new Specification();
-                BeanUtils.copyProperties(specDTO, newSpec);
-                newSpec.setProduct(product);
-                Specification savedSpec = specificationRepository.save(newSpec);
-                existingSpecs.add(savedSpec);
-            }
+    /**
+     * 根据ID获取商品
+     * <p>
+     * 查询指定ID的商品详细信息，包括规格信息。
+     * 此方法会检查商品是否存在，不存在则抛出异常。
+     * </p>
+     * 
+     * @param id 要查询的商品ID
+     * @return 商品的视图对象
+     * @throws NoSuchElementException 当指定ID的商品不存在时抛出此异常
+     */
+    @Override
+    public ProductVO getProductById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
+        if (!product.getStatus().equals(ProductStatus.ACTIVE)) {
+            throw new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND);
         }
+        return convertToProductVO(product);
     }
 
     /**

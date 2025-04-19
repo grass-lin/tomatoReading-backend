@@ -21,7 +21,6 @@ import com.tomato.tomato_mall.entity.Product;
 import com.tomato.tomato_mall.entity.Stockpile;
 import com.tomato.tomato_mall.entity.User;
 import com.tomato.tomato_mall.repository.CartRepository;
-import com.tomato.tomato_mall.repository.OrderItemRepository;
 import com.tomato.tomato_mall.repository.OrderRepository;
 import com.tomato.tomato_mall.repository.PaymentRepository;
 import com.tomato.tomato_mall.repository.ProductRepository;
@@ -41,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,20 +60,17 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
     private final StockpileRepository stockpileRepository;
     private final AlipayClient alipayClient;
     private final AlipayProperties alipayProperties;
-    private final CartServiceImpl cartService;
 
     /**
      * 构造函数，通过依赖注入初始化订单服务组件
      * 
      * @param orderRepository     订单数据访问对象，负责订单数据的持久化操作
-     * @param orderItemRepository 订单项数据访问对象，负责订单项数据的持久化操作
      * @param paymentRepository   支付数据访问对象，负责支付数据的持久化操作
      * @param userRepository      用户数据访问对象，负责用户数据的持久化操作
      * @param cartRepository      购物车数据访问对象，负责购物车数据的持久化操作
@@ -83,28 +78,23 @@ public class OrderServiceImpl implements OrderService {
      * @param stockpileRepository 库存数据访问对象，负责库存数据的持久化操作
      * @param alipayClient        支付宝客户端，用于调用支付宝API
      * @param alipayProperties    支付宝配置属性，包含支付宝接口相关配置
-     * @param cartService         购物车服务，用于处理购物车相关逻辑
      */
     public OrderServiceImpl(
             OrderRepository orderRepository,
-            OrderItemRepository orderItemRepository,
             PaymentRepository paymentRepository,
             UserRepository userRepository,
             CartRepository cartRepository,
             ProductRepository productRepository,
             StockpileRepository stockpileRepository,
             AlipayClient alipayClient,
-            AlipayProperties alipayProperties,
-            CartServiceImpl cartService) {
+            AlipayProperties alipayProperties) {
         this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
         this.cartRepository = cartRepository;
         this.stockpileRepository = stockpileRepository;
         this.alipayClient = alipayClient;
         this.alipayProperties = alipayProperties;
-        this.cartService = cartService;
     }
 
     /**
@@ -124,81 +114,72 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDetailVO createOrder(String username, CheckoutDTO checkoutDTO) {
-        // 获取用户信息
+        // 验证用户
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
-        // 获取购物车项
+        // 验证购物车项
         List<Long> cartItemIds = checkoutDTO.getCartItemIds();
         List<CartItem> cartItems = cartRepository.findAllById(cartItemIds);
-
-        // 验证购物车项
-        for (CartItem cartItem : cartItems) {
-            if (!cartItem.getUser().getId().equals(user.getId())) {
-                throw new BusinessException(ErrorTypeEnum.CARTITEM_NOT_BELONG_TO_USER);
-            }
+        if (cartItems.size() != cartItemIds.size()) {
+            throw new BusinessException(ErrorTypeEnum.CARTITEM_NOT_FOUND);
+        }
+        cartItems.forEach(cartItem -> {
             if (cartItem.getStatus() != CartItemStatus.ACTIVE) {
                 throw new BusinessException(ErrorTypeEnum.CARTITEM_STATUS_ERROR);
             }
-        }
+            if (!cartItem.getUser().getId().equals(user.getId())) {
+                throw new BusinessException(ErrorTypeEnum.CARTITEM_NOT_BELONG_TO_USER);
+            }
+        });
 
         // 创建订单
         Order order = new Order();
         order.setUser(user);
-        order.setStatus(OrderStatus.PENDING);
-        order.setPaymentMethod(checkoutDTO.getPaymentMethod().toUpperCase());
+        order.setPaymentMethod(checkoutDTO.getPaymentMethod());
         order.setReceiverName(checkoutDTO.getShippingAddress().getName());
         order.setReceiverPhone(checkoutDTO.getShippingAddress().getPhone());
         order.setShippingAddress(checkoutDTO.getShippingAddress().getAddress());
         order.setZipCode(checkoutDTO.getShippingAddress().getPostalCode());
 
         // 计算订单总金额并创建订单项
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        List<OrderItem> orderItems = new ArrayList<>();
-
-        for (CartItem cartItem : cartItems) {
-            Product product = cartItem.getProduct();
-            int quantity = cartItem.getQuantity();
-
-            // 验证并锁定库存
-            Stockpile stockpile = stockpileRepository.findByProductId(product.getId())
-                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
-
-            if (stockpile.getAmount() - stockpile.getFrozen() < quantity) {
-                throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
-            }
-
-            // 锁定库存
-            stockpile.setFrozen(stockpile.getFrozen() + quantity);
-            stockpileRepository.save(stockpile);
-
-            // 创建订单项
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setProduct(product);
-            orderItem.setProductName(product.getTitle());
-            orderItem.setPrice(product.getPrice());
-            orderItem.setQuantity(quantity);
-            orderItem.updateSubtotal();
-            orderItem.setStatus(OrderItemStatus.PENDING);
-            orderItem.setCartItemId(cartItem.getId()); // 记录关联的购物车项ID
-            orderItems.add(orderItem);
-
-            totalAmount = totalAmount.add(orderItem.getSubtotal());
-        }
-
-        order.setTotalAmount(totalAmount);
+        List<OrderItem> orderItems = cartItems.stream()
+                .map(cartItem -> {
+                    Product product = cartItem.getProduct();
+                    int quantity = cartItem.getQuantity();
+                    // 验证并锁定库存
+                    Stockpile stockpile = stockpileRepository.findByProductId(product.getId())
+                            .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
+                    if (stockpile.getAmount() - stockpile.getFrozen() < quantity) {
+                        throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
+                    }
+                    stockpile.setFrozen(stockpile.getFrozen() + quantity);
+                    stockpileRepository.save(stockpile);
+                    // 创建订单项
+                    OrderItem orderItem = new OrderItem();
+                    orderItem.setOrder(order);
+                    orderItem.setProduct(product);
+                    orderItem.setCartItem(cartItem);
+                    orderItem.setProductName(product.getTitle());
+                    orderItem.setPrice(product.getPrice());
+                    orderItem.setQuantity(quantity);
+                    orderItem.updateSubtotal();
+                    // 修改购物车项
+                    cartItem.setStatus(CartItemStatus.CHECKED_OUT);
+                    cartItem.setOrderItem(orderItem);
+                    return orderItem;
+                }).collect(Collectors.toList());
         order.setItems(orderItems);
+        // cartRepository.saveAll(cartItems);
+
+        // 计算订单总金额
+        BigDecimal totalAmount = orderItems.stream()
+                .map(OrderItem::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setTotalAmount(totalAmount);
 
         // 保存订单和订单项
         Order savedOrder = orderRepository.save(order);
-        for (OrderItem item : orderItems) {
-            item.setOrder(savedOrder);
-        }
-        orderItemRepository.saveAll(orderItems);
-
-        // 将购物车项标记为已结算
-        cartService.markCartItemsAsCheckedOut(cartItemIds, savedOrder.getId());
 
         // 返回订单视图对象
         return convertToOrderDetailVO(savedOrder);
@@ -225,8 +206,8 @@ public class OrderServiceImpl implements OrderService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
-        Long orderIdLong = cancelOrderDTO.getOrderId();
-        Order order = orderRepository.findById(orderIdLong)
+        Long orderId = cancelOrderDTO.getOrderId();
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_NOT_FOUND));
 
         // 验证订单属于当前用户
@@ -243,20 +224,23 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         order.setCancelReason(cancelOrderDTO.getReason());
         order.setCancelTime(LocalDateTime.now());
-        orderRepository.save(order);
 
         // 更新订单项状态
-        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
-        for (OrderItem item : orderItems) {
+        List<OrderItem> orderItems = order.getItems();
+        orderItems.forEach(item -> {
             item.setStatus(OrderItemStatus.CANCELLED);
-        }
-        orderItemRepository.saveAll(orderItems);
-
-        // 恢复锁定的库存
-        releaseStockForOrder(order);
-
-        // 恢复购物车项到活跃状态
-        cartService.restoreCartItemsByOrderId(order.getId());
+            // 恢复冻结的库存
+            Stockpile stockpile = stockpileRepository.findByProductId(item.getProduct().getId())
+                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
+            stockpile.setFrozen(stockpile.getFrozen() - item.getQuantity());
+            // 恢复购物车项状态并清空关联
+            CartItem cartItem = item.getCartItem();
+            cartItem.setStatus(CartItemStatus.ACTIVE);
+            cartItem.setOrderItem(null);
+            item.setCartItem(null);
+        });
+        order.setItems(orderItems);
+        orderRepository.save(order);
 
         return convertToOrderDetailVO(order);
     }
@@ -412,32 +396,39 @@ public class OrderServiceImpl implements OrderService {
 
         // 更新订单状态
         order.setStatus(OrderStatus.PAID);
-        orderRepository.save(order);
 
-        // 更新购物车项状态
-        cartService.markCartItemsByOrderIdAsCompleted(order.getId());
-
-        // 更新订单项状态
-        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
-        for (OrderItem item : orderItems) {
+        // 更新订单项状态和库存
+        List<OrderItem> orderItems = order.getItems();
+        orderItems.forEach(item -> {
             item.setStatus(OrderItemStatus.PAID);
-        }
-        orderItemRepository.saveAll(orderItems);
 
-        // 从冻结库存中扣减实际库存
-        deductStockForOrder(order);
+            Stockpile stockpile = stockpileRepository.findByProductId(item.getProduct().getId())
+                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
+            stockpile.setAmount(stockpile.getAmount() - item.getQuantity());
+            stockpile.setFrozen(stockpile.getFrozen() - item.getQuantity());
+            stockpileRepository.save(stockpile);
+
+            // 删除关联的购物车项
+            CartItem cartItem = item.getCartItem();
+            if (cartItem != null) {
+                cartItem.setOrderItem(null);
+                item.setCartItem(null);
+                cartRepository.delete(cartItem);
+            }
+        });
+        order.setItems(orderItems);
+        orderRepository.save(order);
 
         // 更新支付记录
         String tradeNo = params.get("trade_no"); // 支付宝交易号
         List<Payment> payments = paymentRepository.findByOrderAndStatus(
                 order, Payment.PaymentStatus.PENDING);
-
-        for (Payment payment : payments) {
+        payments.forEach(payment -> {
             payment.setStatus(Payment.PaymentStatus.SUCCESS);
             payment.setTradeNo(tradeNo);
             payment.setCompleteTime(LocalDateTime.now());
-            paymentRepository.save(payment);
-        }
+        });
+        paymentRepository.saveAll(payments);
 
         return true;
     }
@@ -462,59 +453,13 @@ public class OrderServiceImpl implements OrderService {
         // 更新支付记录
         List<Payment> payments = paymentRepository.findByOrderAndStatus(
                 order, Payment.PaymentStatus.PENDING);
-
-        for (Payment payment : payments) {
+        payments.forEach(payment -> {
             payment.setStatus(Payment.PaymentStatus.FAILED);
             payment.setCompleteTime(LocalDateTime.now());
-            paymentRepository.save(payment);
-        }
+        });
+        paymentRepository.saveAll(payments);
 
         return true;
-    }
-
-    /**
-     * 从冻结库存中扣减实际库存
-     * <p>
-     * 支付成功后，将订单中商品的锁定库存转为实际消耗，
-     * 同时减少商品的总库存和冻结库存。
-     * </p>
-     * 
-     * @param order 要处理的订单
-     * @throws NoSuchElementException 当商品库存不存在时抛出此异常
-     */
-    private void deductStockForOrder(Order order) {
-        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
-        for (OrderItem item : orderItems) {
-            Stockpile stockpile = stockpileRepository.findByProductId(item.getProduct().getId())
-                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
-
-            // 减少库存和冻结数量
-            stockpile.setAmount(stockpile.getAmount() - item.getQuantity());
-            stockpile.setFrozen(stockpile.getFrozen() - item.getQuantity());
-            stockpileRepository.save(stockpile);
-        }
-    }
-
-    /**
-     * 释放锁定的库存
-     * <p>
-     * 订单取消或支付失败时，释放订单中商品的锁定库存，
-     * 确保库存数据的准确性。采用安全的方式处理，防止冻结数量为负。
-     * </p>
-     * 
-     * @param order 要处理的订单
-     */
-    private void releaseStockForOrder(Order order) {
-        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
-        for (OrderItem item : orderItems) {
-            Stockpile stockpile = stockpileRepository.findByProductId(item.getProduct().getId())
-                    .orElse(null);
-
-            if (stockpile != null) {
-                stockpile.setFrozen(Math.max(0, stockpile.getFrozen() - item.getQuantity()));
-                stockpileRepository.save(stockpile);
-            }
-        }
     }
 
     /**
@@ -533,10 +478,6 @@ public class OrderServiceImpl implements OrderService {
         Long orderIdLong = Long.parseLong(orderId);
         Order order = orderRepository.findById(orderIdLong)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_NOT_FOUND));
-
-        // 确保订单项被加载
-        List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
-        order.setItems(orderItems);
 
         return convertToOrderDetailVO(order);
     }
@@ -601,20 +542,28 @@ public class OrderServiceImpl implements OrderService {
             order.setStatus(OrderStatus.TIMEOUT);
             order.setCancelReason("订单支付超时自动取消");
             order.setCancelTime(LocalDateTime.now());
-            orderRepository.save(order);
 
             // 更新订单项状态
-            List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
-            for (OrderItem item : orderItems) {
+            List<OrderItem> orderItems = order.getItems();
+            orderItems.forEach(item -> {
                 item.setStatus(OrderItemStatus.CANCELLED);
-            }
-            orderItemRepository.saveAll(orderItems);
-
-            // 释放锁定的库存
-            releaseStockForOrder(order);
-
-            // 更新购物车项状态
-            cartService.markCartItemsByOrderIdAsCancelled(order.getId());
+                // 恢复冻结的库存
+                Stockpile stockpile = stockpileRepository.findByProductId(item.getProduct().getId())
+                        .orElse(null);
+                if (stockpile != null) {
+                    stockpile.setFrozen(Math.max(0, stockpile.getFrozen() - item.getQuantity()));
+                    stockpileRepository.save(stockpile);
+                }
+                // 删除关联的购物车项
+                CartItem cartItem = item.getCartItem();
+                if (cartItem != null) {
+                    cartItem.setOrderItem(null);
+                    item.setCartItem(null);
+                    cartRepository.delete(cartItem);
+                }
+            });
+            order.setItems(orderItems);
+            orderRepository.save(order);
 
             // 更新支付记录
             List<Payment> payments = paymentRepository.findByOrderAndStatus(
@@ -679,6 +628,9 @@ public class OrderServiceImpl implements OrderService {
     private OrderItemVO convertToOrderItemVO(OrderItem orderItem) {
         OrderItemVO orderItemVO = new OrderItemVO();
         BeanUtils.copyProperties(orderItem, orderItemVO);
+        if (orderItem.getProduct() != null) {
+            orderItemVO.setProductId(orderItem.getProduct().getId());
+        }
         orderItemVO.setStatus(orderItem.getStatus().toString());
         return orderItemVO;
     }

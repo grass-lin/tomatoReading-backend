@@ -13,9 +13,11 @@ import com.tomato.tomato_mall.repository.UserRepository;
 import com.tomato.tomato_mall.service.CartService;
 import com.tomato.tomato_mall.vo.CartItemVO;
 import com.tomato.tomato_mall.vo.CartVO;
+
 import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,10 +53,10 @@ public class CartServiceImpl implements CartService {
      * @param productRepository   商品数据访问对象，负责商品数据的持久化操作
      * @param stockpileRepository 库存数据访问对象，负责库存数据的持久化操作
      */
-    public CartServiceImpl(CartRepository cartRepository, 
-                           UserRepository userRepository,
-                           ProductRepository productRepository,
-                           StockpileRepository stockpileRepository) {
+    public CartServiceImpl(CartRepository cartRepository,
+            UserRepository userRepository,
+            ProductRepository productRepository,
+            StockpileRepository stockpileRepository) {
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
@@ -80,33 +82,33 @@ public class CartServiceImpl implements CartService {
     public CartItemVO addToCart(String username, CartAddDTO cartAddDTO) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
-        
+
         Product product = productRepository.findById(cartAddDTO.getProductId())
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
-        
+
         // 校验库存
         Stockpile stockpile = stockpileRepository.findByProductId(product.getId())
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
-        
+
         if (stockpile.getAmount() < cartAddDTO.getQuantity()) {
             throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
         }
-        
+
         // 检查购物车是否已有该商品且状态为激活
         Optional<CartItem> existingCartItem = cartRepository.findByUserAndProductAndStatus(
                 user, product, CartItemStatus.ACTIVE);
-        
+
         CartItem cartItem;
         if (existingCartItem.isPresent()) {
             // 已有该商品，更新数量
             cartItem = existingCartItem.get();
             int newQuantity = cartItem.getQuantity() + cartAddDTO.getQuantity();
-            
+
             // 再次校验库存
             if (stockpile.getAmount() < newQuantity) {
                 throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
             }
-            
+
             cartItem.setQuantity(newQuantity);
         } else {
             // 新增商品到购物车
@@ -116,7 +118,7 @@ public class CartServiceImpl implements CartService {
             cartItem.setQuantity(cartAddDTO.getQuantity());
             cartItem.setStatus(CartItemStatus.ACTIVE);
         }
-        
+
         cartItem = cartRepository.save(cartItem);
         return convertToCartItemVO(cartItem);
     }
@@ -138,10 +140,10 @@ public class CartServiceImpl implements CartService {
     public void removeFromCart(String username, Long cartItemId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
-        
+
         CartItem cartItem = cartRepository.findById(cartItemId)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.CARTITEM_NOT_FOUND));
-        
+
         // 验证购物车商品属于当前用户
         if (!cartItem.getUser().getId().equals(user.getId())) {
             throw new BusinessException(ErrorTypeEnum.CARTITEM_NOT_BELONG_TO_USER);
@@ -150,7 +152,7 @@ public class CartServiceImpl implements CartService {
         if (cartItem.getStatus() != CartItemStatus.ACTIVE) {
             throw new BusinessException(ErrorTypeEnum.CARTITEM_STATUS_ERROR);
         }
-        
+
         cartRepository.delete(cartItem);
     }
 
@@ -173,10 +175,10 @@ public class CartServiceImpl implements CartService {
     public CartItemVO updateCartItemQuantity(String username, Long cartItemId, Integer quantity) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
-        
+
         CartItem cartItem = cartRepository.findById(cartItemId)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.CARTITEM_NOT_FOUND));
-        
+
         // 验证购物车商品属于当前用户
         if (!cartItem.getUser().getId().equals(user.getId())) {
             throw new BusinessException(ErrorTypeEnum.CARTITEM_NOT_BELONG_TO_USER);
@@ -185,18 +187,18 @@ public class CartServiceImpl implements CartService {
         if (cartItem.getStatus() != CartItemStatus.ACTIVE) {
             throw new BusinessException(ErrorTypeEnum.CARTITEM_STATUS_ERROR);
         }
-        
+
         // 校验库存
         Stockpile stockpile = stockpileRepository.findByProductId(cartItem.getProduct().getId())
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
-        
+
         if (stockpile.getAmount() < quantity) {
             throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
         }
-        
+
         cartItem.setQuantity(quantity);
         cartItem = cartRepository.save(cartItem);
-        
+
         return convertToCartItemVO(cartItem);
     }
 
@@ -215,116 +217,29 @@ public class CartServiceImpl implements CartService {
     public CartVO getCartItems(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
-        
+
         // 只获取状态为激活的购物车项
         List<CartItem> cartItems = cartRepository.findByUserAndStatus(user, CartItemStatus.ACTIVE);
-        
+
         List<CartItemVO> cartItemVOs = cartItems.stream()
                 .map(this::convertToCartItemVO)
                 .collect(Collectors.toList());
-        
+
         // 计算商品种类总数
         int total = cartItemVOs.size();
-        
+
         // 计算商品总金额
         BigDecimal totalAmount = cartItemVOs.stream()
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
+
         return CartVO.builder()
                 .items(cartItemVOs)
                 .total(total)
                 .totalAmount(totalAmount)
                 .build();
     }
-    
-    /**
-     * 将购物车项状态设置为已结算
-     * <p>
-     * 批量更新指定购物车项的状态为已结算，并关联到指定订单。
-     * 只有状态为激活的购物车项才能被设置为已结算，否则会抛出异常。
-     * 使用事务确保数据一致性。
-     * </p>
-     * 
-     * @param cartItemIds 要更新的购物车项ID列表
-     * @param orderId     关联的订单ID
-     * @throws IllegalStateException 当购物车项状态不为激活时抛出此异常
-     */
-    @Transactional
-    @Override
-    public void markCartItemsAsCheckedOut(List<Long> cartItemIds, Long orderId) {
-        List<CartItem> cartItems = cartRepository.findAllById(cartItemIds);
-        for (CartItem cartItem : cartItems) {
-            cartItem.setStatus(CartItemStatus.CHECKED_OUT);
-            cartItem.setOrderId(orderId);
-        }
-        cartRepository.saveAll(cartItems);
-    }
-    
-    /**
-     * 恢复已结算的购物车项到活跃状态
-     * <p>
-     * 将指定订单关联的所有已结算状态的购物车项恢复为活跃状态，
-     * 同时移除订单关联。此方法通常在订单取消时调用，用于恢复购物车项。
-     * 使用事务确保数据一致性。
-     * </p>
-     * 
-     * @param orderId 订单ID，用于查找关联的购物车项
-     */
-    @Transactional
-    @Override
-    public void restoreCartItemsByOrderId(Long orderId) {
-        List<CartItem> cartItems = cartRepository.findByOrderIdAndStatus(
-                orderId, CartItemStatus.CHECKED_OUT);
-        for (CartItem cartItem : cartItems) {
-            cartItem.setStatus(CartItemStatus.ACTIVE);
-            cartItem.setOrderId(null);
-        }
-        cartRepository.saveAll(cartItems);
-    }
-    
-    /**
-     * 标记订单对应的购物车项为已完成
-     * <p>
-     * 将指定订单关联的所有已结算状态的购物车项标记为已完成状态。
-     * 此方法通常在订单完成时调用，表示购物流程已完全结束。
-     * 使用事务确保数据一致性。
-     * </p>
-     * 
-     * @param orderId 订单ID，用于查找关联的购物车项
-     */
-    @Transactional
-    @Override
-    public void markCartItemsByOrderIdAsCompleted(Long orderId) {
-        List<CartItem> cartItems = cartRepository.findByOrderIdAndStatus(
-                orderId, CartItemStatus.CHECKED_OUT);
-        for (CartItem cartItem : cartItems) {
-            cartItem.setStatus(CartItemStatus.COMPLETED);
-        }
-        cartRepository.saveAll(cartItems);
-    }
-    
-    /**
-     * 标记订单对应的购物车项为已取消
-     * <p>
-     * 将指定订单关联的所有已结算状态的购物车项标记为已取消状态。
-     * 此方法通常在订单取消但不恢复购物车时调用，用于记录购物历史。
-     * 使用事务确保数据一致性。
-     * </p>
-     * 
-     * @param orderId 订单ID，用于查找关联的购物车项
-     */
-    @Transactional
-    @Override
-    public void markCartItemsByOrderIdAsCancelled(Long orderId) {
-        List<CartItem> cartItems = cartRepository.findByOrderIdAndStatus(
-                orderId, CartItemStatus.CHECKED_OUT);
-        for (CartItem cartItem : cartItems) {
-            cartItem.setStatus(CartItemStatus.CANCELLED);
-        }
-        cartRepository.saveAll(cartItems);
-    }
-    
+
     /**
      * 将购物车项实体转换为视图对象
      * <p>
@@ -337,13 +252,11 @@ public class CartServiceImpl implements CartService {
      */
     private CartItemVO convertToCartItemVO(CartItem cartItem) {
         CartItemVO vo = new CartItemVO();
+        BeanUtils.copyProperties(cartItem.getProduct(), vo);
         vo.setCartItemId(cartItem.getId());
         vo.setProductId(cartItem.getProduct().getId());
-        vo.setTitle(cartItem.getProduct().getTitle());
-        vo.setCover(cartItem.getProduct().getCover());
-        vo.setPrice(cartItem.getProduct().getPrice());
         vo.setQuantity(cartItem.getQuantity());
-        
+
         return vo;
     }
 }

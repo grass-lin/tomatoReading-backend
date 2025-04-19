@@ -41,7 +41,7 @@ public class OrderItem {
      * 关联的商品
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "product_id", nullable = true)
     private Product product;
 
     /**
@@ -76,10 +76,11 @@ public class OrderItem {
     private OrderItemStatus status = OrderItemStatus.PENDING;
 
     /**
-     * 原购物车项ID，用于追踪来源
+     * 关联的购物车
      */
-    @Column(name = "cart_item_id")
-    private Long cartItemId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_item_id", nullable = true)
+    private CartItem cartItem;
 
     /**
      * 最后更新时间

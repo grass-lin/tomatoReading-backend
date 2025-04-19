@@ -13,11 +13,11 @@ import jakarta.validation.Valid;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
+
+import java.nio.file.AccessDeniedException;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -56,7 +56,7 @@ public class UserController {
      * 
      * @param registerDTO 注册信息数据传输对象，包含用户名、密码等注册信息
      * @return 返回包含新创建用户信息的响应体，状态码201
-     * @throws UsernameAlreadyExistsException 当用户名已存在时抛出
+     * @throws UsernameBusinessException 当用户名已存在时抛出
      */
     @PostMapping
     // Bad Practice
@@ -110,19 +110,12 @@ public class UserController {
      * @param username 要查询的用户名
      * @param request  HTTP请求对象
      * @return 返回包含用户信息的响应体，状态码200
+     * @throws AccessDeniedException 
      * @throws NoSuchElementException 当用户不存在时抛出
      */
     @GetMapping("/{username}")
     public ResponseEntity<ResponseVO<UserVO>> getUserDetail(@PathVariable String username,
             HttpServletRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-
-        if (!currentUsername.equals(username)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(ResponseVO.error(403, "You can only get your own profile"));
-        }
-
         UserVO userVO = userService.getUserByUsername(username);
         return ResponseEntity.ok(ResponseVO.success(userVO));
     }
@@ -136,23 +129,13 @@ public class UserController {
      * 
      * @param updateDTO 用户更新信息数据传输对象
      * @return 返回包含更新后用户信息的响应体，状态码200；或返回错误信息，状态码403
+     * @throws AccessDeniedException 
      * @throws NoSuchElementException 当用户不存在时抛出
      */
     @PutMapping
     // Bad Practice
     public ResponseEntity<ResponseVO<String>> updateUser(
             @Valid @RequestBody UserUpdateDTO updateDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_admin"));
-
-        if (!isAdmin && !currentUsername.equals(updateDTO.getUsername())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(ResponseVO.error(403, "You can only update your own profile"));
-        }
-
         userService.updateUser(updateDTO);
         return ResponseEntity.ok(ResponseVO.success("更新成功"));
     }

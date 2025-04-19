@@ -45,10 +45,6 @@ public class OSSController {
     @GetMapping("/{fileType}")
     public ResponseEntity<ResponseVO<OSSTokenVO>> getUploadToken(@PathVariable String fileType) {
         OSSFileTypeEnum fileTypeEnum = OSSFileTypeEnum.getByDirectory(fileType);
-        if (fileTypeEnum == null) {
-            return ResponseEntity.badRequest()
-                    .body(ResponseVO.error(400, "Invalid file type: " + fileType));
-        }
         OSSTokenVO token = ossService.generateUploadToken(fileTypeEnum);
         return ResponseEntity.ok(ResponseVO.success(token));
     }

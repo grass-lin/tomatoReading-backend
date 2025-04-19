@@ -4,6 +4,8 @@ import com.tomato.tomato_mall.dto.AdvertisementCreateDTO;
 import com.tomato.tomato_mall.dto.AdvertisementUpdateDTO;
 import com.tomato.tomato_mall.entity.Advertisement;
 import com.tomato.tomato_mall.entity.Product;
+import com.tomato.tomato_mall.enums.ErrorTypeEnum;
+import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.repository.AdvertisementRepository;
 import com.tomato.tomato_mall.repository.ProductRepository;
 import com.tomato.tomato_mall.service.AdvertisementService;
@@ -76,7 +78,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Override
     public AdvertisementVO getAdvertisementById(Long id) {
         Advertisement advertisement = advertisementRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("广告不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ADVERTISEMENT_NOT_FOUND));
 
         return convertToAdvertisementVO(advertisement);
     }
@@ -97,7 +99,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     public AdvertisementVO createAdvertisement(AdvertisementCreateDTO createDTO) {
         // 检查关联商品是否存在
         Product product = productRepository.findById(createDTO.getProductId())
-                .orElseThrow(() -> new NoSuchElementException("商品不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
         
         Advertisement advertisement = new Advertisement();
         BeanUtils.copyProperties(createDTO, advertisement);
@@ -124,12 +126,12 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Transactional
     public AdvertisementVO updateAdvertisement(AdvertisementUpdateDTO updateDTO) {
         Advertisement advertisement = advertisementRepository.findById(updateDTO.getId())
-                .orElseThrow(() -> new NoSuchElementException("广告不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ADVERTISEMENT_NOT_FOUND));
         
         // 如果更新了关联商品，需要验证商品是否存在
         if (updateDTO.getProductId() != null) {
             Product product = productRepository.findById(updateDTO.getProductId())
-                    .orElseThrow(() -> new NoSuchElementException("商品不存在"));
+                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
             advertisement.setProduct(product);
         }
         
@@ -165,7 +167,7 @@ public class AdvertisementServiceImpl implements AdvertisementService {
     @Transactional
     public void deleteAdvertisement(Long id) {
         if (!advertisementRepository.existsById(id)) {
-            throw new NoSuchElementException("广告不存在");
+            throw new BusinessException(ErrorTypeEnum.ADVERTISEMENT_NOT_FOUND);
         }
         
         advertisementRepository.deleteById(id);

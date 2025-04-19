@@ -8,7 +8,9 @@ import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.tomato.tomato_mall.config.OSSProperties;
 import com.tomato.tomato_mall.config.STSProperties;
+import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 import com.tomato.tomato_mall.enums.OSSFileTypeEnum;
+import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.service.OSSService;
 import com.tomato.tomato_mall.vo.OSSTokenVO;
 
@@ -72,6 +74,9 @@ public class OSSServiceImpl implements OSSService {
      */
     @Override
     public OSSTokenVO generateUploadToken(OSSFileTypeEnum fileType) {
+        if (fileType == null) {
+            throw new BusinessException(ErrorTypeEnum.INVALID_FILE_TYPE, fileType);
+        }
         try {
             String regionId = "";
             DefaultProfile.addEndpoint(regionId, "Sts", stsProperties.getEndpoint());
@@ -126,7 +131,7 @@ public class OSSServiceImpl implements OSSService {
             return tokenDTO;
         } catch (ClientException e) {
             System.err.println(e.getErrMsg());
-            throw new RuntimeException("Failed to generate OSS upload token", e);
+            throw new BusinessException(ErrorTypeEnum.OSS_TOKEN_GENERATION_FAILED);
         }
     }
 }

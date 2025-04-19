@@ -58,6 +58,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
+        // 这里本来应该做成一个exception，但是这个状态码太荒诞了，我就不动了
         
         // Bad practice
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

@@ -4,6 +4,8 @@ import com.tomato.tomato_mall.dto.ShippingAddressDTO;
 import com.tomato.tomato_mall.dto.ShippingAddressUpdateDTO;
 import com.tomato.tomato_mall.entity.ShippingAddress;
 import com.tomato.tomato_mall.entity.User;
+import com.tomato.tomato_mall.enums.ErrorTypeEnum;
+import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.repository.ShippingAddressRepository;
 import com.tomato.tomato_mall.repository.UserRepository;
 import com.tomato.tomato_mall.service.ShippingAddressService;
@@ -13,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 /**
@@ -47,7 +48,7 @@ public class ShippingAddressServiceImpl implements ShippingAddressService {
     @Override
     public List<ShippingAddressVO> getUserAddresses(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
         List<ShippingAddress> addresses = shippingAddressRepository.findByUser(user);
 
@@ -60,7 +61,7 @@ public class ShippingAddressServiceImpl implements ShippingAddressService {
     @Transactional
     public ShippingAddressVO createAddress(String username, ShippingAddressDTO createDTO) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
         ShippingAddress address = new ShippingAddress();
         BeanUtils.copyProperties(createDTO, address);
@@ -75,13 +76,13 @@ public class ShippingAddressServiceImpl implements ShippingAddressService {
     @Transactional
     public ShippingAddressVO updateAddress(String username, ShippingAddressUpdateDTO updateDTO) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
         ShippingAddress address = shippingAddressRepository.findById(updateDTO.getId())
-                .orElseThrow(() -> new NoSuchElementException("收货信息不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.SHIPPING_ADDRESS_NOT_FOUND));
 
         if (!address.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("无权修改该收货信息");
+            throw new BusinessException(ErrorTypeEnum.SHIPPING_ADDRESS_NOT_BELONG_TO_USER);
         }
 
         // 有选择地更新地址字段
@@ -110,13 +111,13 @@ public class ShippingAddressServiceImpl implements ShippingAddressService {
     @Transactional
     public void deleteAddress(String username, Long addressId) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
         ShippingAddress address = shippingAddressRepository.findById(addressId)
-                .orElseThrow(() -> new NoSuchElementException("收货信息不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.SHIPPING_ADDRESS_NOT_FOUND));
 
         if (!address.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("无权删除该收货地址");
+            throw new BusinessException(ErrorTypeEnum.SHIPPING_ADDRESS_NOT_BELONG_TO_USER);
         }
 
         shippingAddressRepository.delete(address);

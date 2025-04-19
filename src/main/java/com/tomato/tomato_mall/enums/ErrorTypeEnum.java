@@ -2,6 +2,7 @@ package com.tomato.tomato_mall.enums;
 
 import java.util.IllegalFormatException;
 
+import org.antlr.v4.runtime.atn.SemanticContext.OR;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -35,6 +36,8 @@ public enum ErrorTypeEnum {
 
     CARTITEM_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "购物车商品不属于当前用户"),
 
+    ORDER_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "订单不属于当前用户"),
+
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "支付金额不匹配"),
 
     STOCKPILE_AMOUNT_CANNOT_BE_LESS_THAN_FROZEN_AMOUNT(HttpStatus.BAD_REQUEST, "库存数量不能少于冻结数量"),
@@ -42,6 +45,13 @@ public enum ErrorTypeEnum {
     INCORRECT_PASSWORD(HttpStatus.BAD_REQUEST, "用户密码错误"), // Bad practice
 
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "无效的文件类型: %s"),
+
+    CARTITEM_STATUS_ERROR(HttpStatus.BAD_REQUEST, "购物车商品状态错误"),
+
+    ORDER_STATUS_NOT_ALLOW_CANCEL(HttpStatus.BAD_REQUEST, "订单状态不允许取消"),
+    
+    ORDER_STATUS_NOT_ALLOW_PAY(HttpStatus.BAD_REQUEST, "订单状态不允许支付"),
+
 
 
     // AccessDeniedException

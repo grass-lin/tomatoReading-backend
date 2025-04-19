@@ -171,7 +171,9 @@ public class UserServiceImpl implements UserService {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String currentUsername = authentication.getName();
 
-    if (!currentUsername.equals(updateDTO.getUsername())) {
+    boolean isAdmin = authentication.getAuthorities().stream()
+        .anyMatch(authority -> authority.getAuthority().equals("ROLE_admin"));
+    if (!isAdmin && !currentUsername.equals(updateDTO.getUsername())) {
       throw new AccessDeniedException("");
     }
     User user = userRepository.findByUsername(updateDTO.getUsername())

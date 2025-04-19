@@ -19,7 +19,7 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ResponseVO<Void>> handleBusinessException(BusinessException ex) {
-        if (ex.getStatus() != null) {
+        if (ex.getArgs() != null) {
             return buildErrorResponse(ex.getErrorType(), ex.getArgs());
         }
         return buildErrorResponse(ex.getErrorType());

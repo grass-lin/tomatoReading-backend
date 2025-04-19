@@ -26,6 +26,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -90,15 +91,19 @@ public class ProductServiceImpl implements ProductService {
         Product product = new Product();
         BeanUtils.copyProperties(createDTO, product);
 
-        List<Specification> specifications = createDTO.getSpecifications().stream()
-                .map(specDTO -> {
-                    Specification spec = new Specification();
-                    BeanUtils.copyProperties(specDTO, spec);
-                    spec.setProduct(product);
-                    return spec;
-                })
-                .collect(Collectors.toList());
-        product.setSpecifications(specifications);
+        if (createDTO.getSpecifications() != null) {
+            List<Specification> specifications = createDTO.getSpecifications().stream()
+                    .map(specDTO -> {
+                        Specification spec = new Specification();
+                        BeanUtils.copyProperties(specDTO, spec);
+                        spec.setProduct(product);
+                        return spec;
+                    })
+                    .collect(Collectors.toList());
+            product.setSpecifications(specifications);
+        } else {
+            product.setSpecifications(new ArrayList<>());
+        }
 
         Stockpile stockpile = new Stockpile();
         stockpile.setProduct(product);

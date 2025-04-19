@@ -54,11 +54,11 @@ public class StockpileServiceImpl implements StockpileService {
     @Override
     public StockpileVO getStockpileByProductId(Long productId) {
         if (!productRepository.existsById(productId)) {
-            throw new NoSuchElementException("Product not found");
+            throw new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND);
         }
         
         Stockpile stockpile = stockpileRepository.findByProductId(productId)
-                .orElseThrow(() -> new NoSuchElementException("Stockpile not found"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
         
         return convertToStockpileVO(stockpile);
     }
@@ -80,16 +80,16 @@ public class StockpileServiceImpl implements StockpileService {
     @Transactional
     public StockpileVO updateStockpile(Long productId, StockpileUpdateDTO stockpileUpdateDTO) {
         productRepository.findById(productId)
-                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
         
         Stockpile stockpile = stockpileRepository.findByProductId(productId)
-                .orElseThrow(() -> new NoSuchElementException("Stockpile not found"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
 
         Integer amount = stockpileUpdateDTO.getAmount();
         
         // 验证库存数量是否合法
         if (amount < stockpile.getFrozen()) {
-            throw new BusinessException(ErrorTypeEnum.STOCKPILE_AMOUNT_CANNOT_BE_LESS_THAN_FROZEN_AMOUNT);
+            throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
         }
         
         stockpile.setAmount(amount);

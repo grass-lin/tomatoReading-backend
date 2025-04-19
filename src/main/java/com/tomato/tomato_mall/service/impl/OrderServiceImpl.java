@@ -14,6 +14,8 @@ import com.tomato.tomato_mall.entity.Order;
 import com.tomato.tomato_mall.entity.Order.OrderStatus;
 import com.tomato.tomato_mall.entity.OrderItem;
 import com.tomato.tomato_mall.entity.OrderItem.OrderItemStatus;
+import com.tomato.tomato_mall.enums.ErrorTypeEnum;
+import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.entity.Payment;
 import com.tomato.tomato_mall.entity.Product;
 import com.tomato.tomato_mall.entity.Stockpile;
@@ -124,7 +126,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderDetailVO createOrder(String username, CheckoutDTO checkoutDTO) {
         // 获取用户信息
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
         // 获取购物车项
         List<Long> cartItemIds = checkoutDTO.getCartItemIds();
@@ -133,10 +135,10 @@ public class OrderServiceImpl implements OrderService {
         // 验证购物车项
         for (CartItem cartItem : cartItems) {
             if (!cartItem.getUser().getId().equals(user.getId())) {
-                throw new IllegalArgumentException("购物车商品不属于当前用户");
+                throw new BusinessException(ErrorTypeEnum.CARTITEM_NOT_BELONG_TO_USER);
             }
             if (cartItem.getStatus() != CartItemStatus.ACTIVE) {
-                throw new IllegalArgumentException("购物车商品状态错误，无法结算");
+                throw new BusinessException(ErrorTypeEnum.CARTITEM_STATUS_ERROR);
             }
         }
 
@@ -160,10 +162,10 @@ public class OrderServiceImpl implements OrderService {
 
             // 验证并锁定库存
             Stockpile stockpile = stockpileRepository.findByProductId(product.getId())
-                    .orElseThrow(() -> new NoSuchElementException("商品库存不存在"));
+                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
 
             if (stockpile.getAmount() - stockpile.getFrozen() < quantity) {
-                throw new IllegalArgumentException("商品 " + product.getTitle() + " 库存不足");
+                throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
             }
 
             // 锁定库存
@@ -221,20 +223,20 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDetailVO cancelOrder(String username, CancelOrderDTO cancelOrderDTO) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
         Long orderIdLong = cancelOrderDTO.getOrderId();
         Order order = orderRepository.findById(orderIdLong)
-                .orElseThrow(() -> new NoSuchElementException("订单不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_NOT_FOUND));
 
         // 验证订单属于当前用户
         if (!order.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("无权操作该订单");
+            throw new BusinessException(ErrorTypeEnum.ORDER_NOT_BELONG_TO_USER);
         }
 
         // 验证订单是否可以取消
         if (!order.canCancel()) {
-            throw new IllegalStateException("订单状态不允许取消");
+            throw new BusinessException(ErrorTypeEnum.ORDER_STATUS_NOT_ALLOW_CANCEL);
         }
 
         // 更新订单状态
@@ -279,17 +281,17 @@ public class OrderServiceImpl implements OrderService {
         // 查询订单
         Long orderIdLong = Long.parseLong(orderId);
         Order order = orderRepository.findById(orderIdLong)
-                .orElseThrow(() -> new NoSuchElementException("订单不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_NOT_FOUND));
 
         // 验证订单状态
         if (!order.canPay()) {
-            throw new IllegalStateException("订单状态不允许支付");
+            throw new BusinessException(ErrorTypeEnum.ORDER_STATUS_NOT_ALLOW_PAY);
         }
 
         // 检测订单是否超时
         LocalDateTime timeoutThreshold = LocalDateTime.now().minusMinutes(30);
         if (order.getStatus() == OrderStatus.PENDING && order.getCreateTime().isBefore(timeoutThreshold)) {
-            throw new IllegalStateException("订单状态不允许支付");
+            throw new BusinessException(ErrorTypeEnum.ORDER_STATUS_NOT_ALLOW_PAY);
         }
 
         try {
@@ -328,7 +330,7 @@ public class OrderServiceImpl implements OrderService {
                     .build();
 
         } catch (AlipayApiException e) {
-            throw new RuntimeException("创建支付表单失败", e);
+            throw new BusinessException(ErrorTypeEnum.CREATE_PAY_FORM_FAILED);
         }
     }
 
@@ -369,7 +371,7 @@ public class OrderServiceImpl implements OrderService {
 
             Long orderId = Long.parseLong(orderIdStr);
             Order order = orderRepository.findById(orderId)
-                    .orElseThrow(() -> new NoSuchElementException("订单不存在"));
+                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_NOT_FOUND));
 
             if ("TRADE_SUCCESS".equals(tradeStatus) || "TRADE_FINISHED".equals(tradeStatus)) {
                 return processSuccessfulPayment(order, params);
@@ -484,7 +486,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
         for (OrderItem item : orderItems) {
             Stockpile stockpile = stockpileRepository.findByProductId(item.getProduct().getId())
-                    .orElseThrow(() -> new NoSuchElementException("商品库存不存在"));
+                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
 
             // 减少库存和冻结数量
             stockpile.setAmount(stockpile.getAmount() - item.getQuantity());
@@ -530,7 +532,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderDetailVO getOrderById(String orderId) {
         Long orderIdLong = Long.parseLong(orderId);
         Order order = orderRepository.findById(orderIdLong)
-                .orElseThrow(() -> new NoSuchElementException("订单不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_NOT_FOUND));
 
         // 确保订单项被加载
         List<OrderItem> orderItems = orderItemRepository.findByOrder(order);
@@ -553,7 +555,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderVO> getOrdersByUsername(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new NoSuchElementException("用户不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
         List<Order> orders = orderRepository.findByUser(user);
         return orders.stream()

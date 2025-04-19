@@ -10,7 +10,6 @@ import com.tomato.tomato_mall.service.UserService;
 import com.tomato.tomato_mall.vo.UserVO;
 import com.tomato.tomato_mall.util.JwtUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -68,7 +67,6 @@ public class UserServiceImpl implements UserService {
   public UserVO register(UserRegisterDTO registerDTO) {
     if (userRepository.existsByUsername(registerDTO.getUsername())) {
       throw new BusinessException(ErrorTypeEnum.USERNAME_ALREADY_EXISTS);
-      // throw new UsernameBusinessException("Username already exists");
     }
 
     User user = new User();
@@ -120,12 +118,11 @@ public class UserServiceImpl implements UserService {
     String currentUsername = authentication.getName();
 
     if (!currentUsername.equals(username)) {
-      throw new AccessDeniedException("");
+      throw new BusinessException(ErrorTypeEnum.USER_NOT_BELONG_TO_USER);
     }
 
     User user = userRepository.findByUsername(username)
         .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
-        // .orElseThrow(() -> new NoSuchElementException("User not found"));
 
     UserVO userVO = new UserVO();
     BeanUtils.copyProperties(user, userVO);
@@ -174,7 +171,7 @@ public class UserServiceImpl implements UserService {
     boolean isAdmin = authentication.getAuthorities().stream()
         .anyMatch(authority -> authority.getAuthority().equals("ROLE_admin"));
     if (!isAdmin && !currentUsername.equals(updateDTO.getUsername())) {
-      throw new AccessDeniedException("");
+      throw new BusinessException(ErrorTypeEnum.USER_NOT_BELONG_TO_USER);
     }
     User user = userRepository.findByUsername(updateDTO.getUsername())
         .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));

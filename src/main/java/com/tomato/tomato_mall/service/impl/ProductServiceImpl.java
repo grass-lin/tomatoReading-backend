@@ -124,14 +124,14 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("商品不存在"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
 
         if (product.getStatus().equals(ProductStatus.DELETED)) {
-            throw new NoSuchElementException("商品不存在");
+            throw new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND);
         }
 
         if (orderItemRepository.existsByProductIdAndStatus(id, OrderItemStatus.PENDING)) {
-            throw new IllegalStateException("商品已被订单占用，无法删除");
+            throw new BusinessException(ErrorTypeEnum.PRODUCT_OCCUPIED_BY_ORDER);
         }
 
         // 处理购物车项
@@ -189,9 +189,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductVO getProductById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
         if (!product.getStatus().equals(ProductStatus.ACTIVE)) {
-            throw new NoSuchElementException("Product not found");
+            throw new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND);
         }
         return convertToProductVO(product);
     }
@@ -213,7 +213,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductVO updateProduct(ProductUpdateDTO updateDTO) {
         Product product = productRepository.findById(updateDTO.getId())
-                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
         if (!product.getStatus().equals(ProductStatus.ACTIVE)) {
             throw new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND);
         }

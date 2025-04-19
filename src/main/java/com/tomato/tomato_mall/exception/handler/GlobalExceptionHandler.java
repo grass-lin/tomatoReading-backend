@@ -11,8 +11,6 @@ import org.springframework.validation.FieldError;
 import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 import com.tomato.tomato_mall.vo.ResponseVO;
-
-import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,11 +37,6 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
         });
         
         return buildErrorResponseWithData(ErrorTypeEnum.VALIDATION_ERROR, errors);
-    }
-
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ResponseVO<Void>> handleAccessDeniedException(AccessDeniedException ex) {
-        return buildErrorResponse(ErrorTypeEnum.ACCESS_DENIED);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

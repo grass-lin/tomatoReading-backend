@@ -131,7 +131,7 @@ public class OSSServiceImpl implements OSSService {
             return tokenDTO;
         } catch (ClientException e) {
             System.err.println(e.getErrMsg());
-            throw new RuntimeException("Failed to generate OSS upload token", e);
+            throw new BusinessException(ErrorTypeEnum.OSS_TOKEN_GENERATION_FAILED);
         }
     }
 }

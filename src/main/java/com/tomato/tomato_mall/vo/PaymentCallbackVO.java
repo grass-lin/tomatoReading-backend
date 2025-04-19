@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
  * 主要用于支付流程的第三步，响应支付平台的异步通知。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Data

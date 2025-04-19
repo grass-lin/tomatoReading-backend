@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 /**
  * 用户服务实现类
@@ -128,6 +130,27 @@ public class UserServiceImpl implements UserService {
     UserVO userVO = new UserVO();
     BeanUtils.copyProperties(user, userVO);
     return userVO;
+  }
+
+    /**
+   * 获取所有用户信息
+   * <p>
+   * 查询并返回系统中所有用户的列表，仅管理员可使用该功能。
+   * 返回的用户信息已转换为视图对象，不包含敏感信息如密码。
+   * </p>
+   *
+   * @return 所有用户的视图对象列表
+   */
+  @Override
+  public List<UserVO> getAllUsers() {
+    List<User> users = userRepository.findAll();
+    return users.stream()
+        .map(user -> {
+          UserVO userVO = new UserVO();
+          BeanUtils.copyProperties(user, userVO);
+          return userVO;
+        })
+        .collect(Collectors.toList());
   }
 
   /**

@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 提供JSON序列化和反序列化的工具方法，封装了Jackson库的常用操作。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 public class JsonUtils {

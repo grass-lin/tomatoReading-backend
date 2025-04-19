@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 主要用于订单创建后的信息返回，以及订单查询接口的数据展示。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Data
@@ -26,23 +26,23 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class OrderVO {
-    
+
     /**
      * 订单ID
      * <p>
      * 订单的唯一标识符
      * </p>
      */
-    private String orderId;
-    
+    private Long id;
+
     /**
-     * 用户ID
+     * 用户名
      * <p>
-     * 下单用户的唯一标识符
+     * 下单用户的用户名
      * </p>
      */
-    private String userId;
-    
+    private String username;
+
     /**
      * 订单总金额
      * <p>
@@ -50,7 +50,7 @@ public class OrderVO {
      * </p>
      */
     private BigDecimal totalAmount;
-    
+
     /**
      * 支付方式
      * <p>
@@ -58,7 +58,7 @@ public class OrderVO {
      * </p>
      */
     private String paymentMethod;
-    
+
     /**
      * 订单创建时间
      * <p>
@@ -66,7 +66,7 @@ public class OrderVO {
      * </p>
      */
     private LocalDateTime createTime;
-    
+
     /**
      * 订单状态
      * <p>

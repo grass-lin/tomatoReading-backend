@@ -73,7 +73,7 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(authorize -> authorize
             // 公开访问的端点
-            .requestMatchers("/api/accounts", "/api/accounts/login", "/api/oss/avatar").permitAll()
+            .requestMatchers("/api/accounts", "/api/accounts/login", "/api/oss/avatar", "/api/orders/notify").permitAll()
             // 所有其他请求需要认证
             .anyRequest().authenticated())
         // 不使用session

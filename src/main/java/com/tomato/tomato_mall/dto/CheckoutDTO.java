@@ -18,7 +18,7 @@ import java.util.List;
  * 主要用于订单创建流程的第一步，实现从购物车到订单的转换。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @Data

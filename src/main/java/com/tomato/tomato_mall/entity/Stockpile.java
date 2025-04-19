@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
  * 实体使用Lombok注解简化了代码，自动生成了getter、setter、equals、hashCode和toString方法。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  * @see Product
  */
@@ -50,7 +50,7 @@ public class Stockpile {
      * </p>
      */
     @Column(nullable = false)
-    private Integer amount;
+    private Integer amount = 0;
 
     /**
      * 冻结库存数量
@@ -61,7 +61,7 @@ public class Stockpile {
      * </p>
      */
     @Column(nullable = false)
-    private Integer frozen;
+    private Integer frozen = 0;
 
     /**
      * 关联的商品

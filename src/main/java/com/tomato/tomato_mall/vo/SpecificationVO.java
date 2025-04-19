@@ -15,7 +15,7 @@ import lombok.Data;
  * 3. 购物车和订单中商品规格的选择和展示
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  * @see ProductVO
  */

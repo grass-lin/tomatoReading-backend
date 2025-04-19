@@ -1,6 +1,10 @@
 package com.tomato.tomato_mall.repository;
 
 import com.tomato.tomato_mall.entity.Product;
+import com.tomato.tomato_mall.entity.Product.ProductStatus;
+
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -21,14 +25,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     /**
-     * 检查指定标题的商品是否存在
-     * <p>
-     * 用于验证商品标题唯一性的方法，多用于商品创建环节的查重。
-     * 比直接查询商品实体更高效，因为只需要检查记录是否存在。
-     * </p>
-     *
-     * @param title 要检查的商品标题
-     * @return 如果商品标题已存在则返回true，否则返回false
+     * 根据商品状态查询商品列表
+     * 
+     * @param status 商品状态
+     * @return 指定状态的商品列表
      */
-    boolean existsByTitle(String title);
+    List<Product> findByStatus(ProductStatus status);
 }

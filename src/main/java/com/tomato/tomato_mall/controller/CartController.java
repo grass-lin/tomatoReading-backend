@@ -7,7 +7,7 @@ import com.tomato.tomato_mall.service.CartService;
 import com.tomato.tomato_mall.service.OrderService;
 import com.tomato.tomato_mall.vo.CartItemVO;
 import com.tomato.tomato_mall.vo.CartVO;
-import com.tomato.tomato_mall.vo.OrderVO;
+import com.tomato.tomato_mall.vo.OrderDetailVO;
 import com.tomato.tomato_mall.vo.ResponseVO;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -131,9 +131,9 @@ public class CartController {
      * @throws java.util.NoSuchElementException 当用户或商品不存在时抛出
      */
     @PostMapping("/checkout")
-    public ResponseEntity<ResponseVO<OrderVO>> checkout(@Valid @RequestBody CheckoutDTO checkoutDTO) {
+    public ResponseEntity<ResponseVO<OrderDetailVO>> checkout(@Valid @RequestBody CheckoutDTO checkoutDTO) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        OrderVO orderVO = orderService.createOrder(username, checkoutDTO);
-        return ResponseEntity.ok(ResponseVO.success(orderVO));
+        OrderDetailVO orderDetailVO = orderService.createOrder(username, checkoutDTO);
+        return ResponseEntity.ok(ResponseVO.success(orderDetailVO));
     }
 }

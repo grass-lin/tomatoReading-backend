@@ -1,13 +1,26 @@
 package com.tomato.tomato_mall.controller;
 
+import com.tomato.tomato_mall.dto.CancelOrderDTO;
 import com.tomato.tomato_mall.dto.PaymentCallbackDTO;
 import com.tomato.tomato_mall.service.OrderService;
+import com.tomato.tomato_mall.vo.OrderDetailVO;
 import com.tomato.tomato_mall.vo.OrderVO;
-import com.tomato.tomato_mall.vo.PaymentCallbackVO;
 import com.tomato.tomato_mall.vo.PaymentVO;
 import com.tomato.tomato_mall.vo.ResponseVO;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -17,13 +30,14 @@ import org.springframework.web.bind.annotation.*;
  * 所有接口返回统一的ResponseVO格式，包含状态码、消息和数据
  * </p>
  * 
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  */
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
 
+    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
     private final OrderService orderService;
 
     /**
@@ -56,20 +70,46 @@ public class OrderController {
     /**
      * 支付回调处理接口
      * <p>
-     * 处理支付宝的异步通知，验证支付结果，更新订单状态和库存
+     * 处理支付平台的异步通知，验证支付结果，更新订单状态和库存
      * 支付流程的第三步
      * </p>
      * 
-     * @param callbackDTO 支付回调数据传输对象，包含支付结果和订单信息
-     * @return 返回处理结果响应体，状态码200
-     * @throws java.security.SignatureException 当支付回调验签失败时抛出
-     * @throws java.util.NoSuchElementException 当订单不存在时抛出
+     * @param request  HTTP请求对象，包含支付平台回调参数
+     * @param response HTTP响应对象，用于向支付平台返回处理结果
+     * @throws IOException 当写入响应时发生IO异常时抛出
      */
     @PostMapping("/notify")
-    public ResponseEntity<ResponseVO<PaymentCallbackVO>> handlePaymentCallback(
-            @Valid @RequestBody PaymentCallbackDTO callbackDTO) {
-        PaymentCallbackVO callbackVO = orderService.processPaymentCallback(callbackDTO);
-        return ResponseEntity.ok(ResponseVO.success(callbackVO));
+    public void handlePaymentCallback(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            Map<String, String> params = new HashMap<>();
+            Map<String, String[]> requestParams = request.getParameterMap();
+            for (String key : requestParams.keySet()) {
+                params.put(key, requestParams.get(key)[0]);
+            }
+            
+            PaymentCallbackDTO callbackDTO = new PaymentCallbackDTO(params);
+            boolean success = orderService.handlePaymentCallback(callbackDTO);
+            response.getWriter().print(success ? "success" : "fail");
+        } catch (Exception e) {
+            logger.error("Error processing payment callback", e);
+            response.getWriter().print("fail");
+        }
+    }
+
+    /**
+     * 获取当前用户所有订单接口
+     * <p>
+     * 返回当前认证用户的所有订单列表
+     * </p>
+     *
+     * @return 返回包含订单列表的响应体，状态码200
+     * @throws java.util.NoSuchElementException 当用户不存在时抛出
+     */
+    @GetMapping
+    public ResponseEntity<ResponseVO<List<OrderVO>>> getOrders() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<OrderVO> orders = orderService.getOrdersByUsername(username);
+        return ResponseEntity.ok(ResponseVO.success(orders));
     }
 
     /**
@@ -83,8 +123,26 @@ public class OrderController {
      * @throws java.util.NoSuchElementException 当订单不存在时抛出
      */
     @GetMapping("/{orderId}")
-    public ResponseEntity<ResponseVO<OrderVO>> getOrderDetail(@PathVariable String orderId) {
-        OrderVO orderVO = orderService.getOrderById(orderId);
-        return ResponseEntity.ok(ResponseVO.success(orderVO));
+    public ResponseEntity<ResponseVO<OrderDetailVO>> getOrderDetail(@PathVariable String orderId) {
+        OrderDetailVO orderDetailVO = orderService.getOrderById(orderId);
+        return ResponseEntity.ok(ResponseVO.success(orderDetailVO));
+    }
+
+    /**
+     * 取消订单接口
+     * <p>
+     * 允许用户取消未支付或未完成的订单，根据提供的取消信息处理订单取消逻辑
+     * </p>
+     * 
+     * @param cancelOrderDTO 订单取消数据传输对象，包含订单ID和取消原因
+     * @return 返回包含已取消订单详情的响应体，状态码200
+     * @throws java.util.NoSuchElementException 当订单不存在时抛出
+     * @throws IllegalStateException 当订单状态不允许取消时抛出
+     */
+    @DeleteMapping
+    public ResponseEntity<ResponseVO<OrderDetailVO>> cancelOrder(@Valid @RequestBody CancelOrderDTO cancelOrderDTO) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        OrderDetailVO orderDetailVO = orderService.cancelOrder(username, cancelOrderDTO);
+        return ResponseEntity.ok(ResponseVO.success(orderDetailVO));
     }
 }

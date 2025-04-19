@@ -20,7 +20,7 @@ import lombok.Data;
  * 所有字段都是必填的，确保规格信息的完整性。
  * </p>
  *
- * @author Team Tomato
+ * @author Team CBDDL
  * @version 1.0
  * @see com.tomato.tomato_mall.dto.ProductCreateDTO
  * @see com.tomato.tomato_mall.dto.ProductUpdateDTO

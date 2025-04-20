@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -48,10 +47,10 @@ public class CartServiceImpl implements CartService {
     /**
      * 构造函数，通过依赖注入初始化购物车服务组件
      * 
-     * @param cartRepository      购物车数据访问对象，负责购物车数据的持久化操作
-     * @param userRepository      用户数据访问对象，负责用户数据的持久化操作
-     * @param productRepository   商品数据访问对象，负责商品数据的持久化操作
-     * @param stockpileRepository 库存数据访问对象，负责库存数据的持久化操作
+     * @param cartRepository      购物车数据访问对象
+     * @param userRepository      用户数据访问对象
+     * @param productRepository   商品数据访问对象
+     * @param stockpileRepository 库存数据访问对象
      */
     public CartServiceImpl(CartRepository cartRepository,
             UserRepository userRepository,
@@ -63,23 +62,10 @@ public class CartServiceImpl implements CartService {
         this.stockpileRepository = stockpileRepository;
     }
 
-    /**
-     * 添加商品到购物车
-     * <p>
-     * 将商品添加到用户的购物车中，并检查库存是否充足。
-     * 如果购物车中已存在相同商品且状态为激活，则增加商品数量；
-     * 否则创建新的购物车项。使用事务确保数据一致性。
-     * </p>
-     * 
-     * @param username   用户名，用于识别购物车所属用户
-     * @param cartAddDTO 购物车添加数据传输对象，包含要添加的商品信息
-     * @return 添加成功的购物车项视图对象
-     * @throws NoSuchElementException   当用户或商品不存在时抛出此异常
-     * @throws IllegalArgumentException 当商品库存不足时抛出此异常
-     */
     @Override
     @Transactional
     public CartItemVO addToCart(String username, CartAddDTO cartAddDTO) {
+        // 验证用户和商品是否存在
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
@@ -89,7 +75,6 @@ public class CartServiceImpl implements CartService {
         // 校验库存
         Stockpile stockpile = stockpileRepository.findByProductId(product.getId())
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
-
         if (stockpile.getAmount() < cartAddDTO.getQuantity()) {
             throw new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_ENOUGH);
         }
@@ -123,21 +108,10 @@ public class CartServiceImpl implements CartService {
         return convertToCartItemVO(cartItem);
     }
 
-    /**
-     * 从购物车中移除商品
-     * <p>
-     * 移除指定ID的购物车项，移除前会验证该购物车项是否属于当前用户且状态为激活。
-     * 此方法执行物理删除，会从数据库中彻底移除购物车项记录。
-     * </p>
-     * 
-     * @param username   用户名，用于识别购物车所属用户
-     * @param cartItemId 要移除的购物车项ID
-     * @throws NoSuchElementException   当用户或购物车项不存在时抛出此异常
-     * @throws IllegalArgumentException 当购物车项不属于当前用户或状态不为激活时抛出此异常
-     */
     @Override
     @Transactional
     public void removeFromCart(String username, Long cartItemId) {
+        // 验证用户和购物车项是否存在
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
@@ -148,31 +122,17 @@ public class CartServiceImpl implements CartService {
         if (!cartItem.getUser().getId().equals(user.getId())) {
             throw new BusinessException(ErrorTypeEnum.CARTITEM_NOT_BELONG_TO_USER);
         }
-
+        // 验证购物车商品状态为激活
         if (cartItem.getStatus() != CartItemStatus.ACTIVE) {
             throw new BusinessException(ErrorTypeEnum.CARTITEM_STATUS_ERROR);
         }
-
         cartRepository.delete(cartItem);
     }
 
-    /**
-     * 更新购物车项数量
-     * <p>
-     * 更新指定购物车项的商品数量，更新前会验证该购物车项是否属于当前用户且状态为激活，
-     * 同时校验更新后的数量是否超过库存。使用事务确保数据一致性。
-     * </p>
-     * 
-     * @param username   用户名，用于识别购物车所属用户
-     * @param cartItemId 要更新的购物车项ID
-     * @param quantity   更新后的商品数量
-     * @return 更新后的购物车项视图对象
-     * @throws NoSuchElementException   当用户、购物车项或库存不存在时抛出此异常
-     * @throws IllegalArgumentException 当购物车项不属于当前用户、状态不为激活或库存不足时抛出此异常
-     */
     @Override
     @Transactional
     public CartItemVO updateCartItemQuantity(String username, Long cartItemId, Integer quantity) {
+        // 验证用户和购物车项是否存在
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
@@ -202,17 +162,6 @@ public class CartServiceImpl implements CartService {
         return convertToCartItemVO(cartItem);
     }
 
-    /**
-     * 获取用户购物车内所有商品
-     * <p>
-     * 查询指定用户的所有状态为激活的购物车项，并转换为前端展示所需的视图对象。
-     * 此方法还会计算购物车中的商品总数和总金额，方便前端展示。
-     * </p>
-     * 
-     * @param username 用户名，用于识别购物车所属用户
-     * @return 包含购物车项列表、商品总数和总金额的购物车视图对象
-     * @throws NoSuchElementException 当用户不存在时抛出此异常
-     */
     @Override
     public CartVO getCartItems(String username) {
         User user = userRepository.findByUsername(username)

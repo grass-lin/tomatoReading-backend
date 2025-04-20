@@ -85,7 +85,6 @@ public interface OrderService {
      *
      * @param callbackDTO 支付回调数据传输对象，包含支付平台回调的所有参数
      * @return 是否处理成功，true表示成功处理
-     * @throws IllegalArgumentException 当回调参数无效或签名验证失败时抛出此异常
      */
     boolean handlePaymentCallback(PaymentCallbackDTO callbackDTO);
 

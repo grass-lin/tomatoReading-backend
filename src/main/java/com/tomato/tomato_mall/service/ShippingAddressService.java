@@ -22,7 +22,6 @@ public interface ShippingAddressService {
      * 
      * @param username 用户名
      * @return 用户的收货地址列表
-     * @throws java.util.NoSuchElementException 当用户不存在时抛出
      */
     List<ShippingAddressVO> getUserAddresses(String username);
 
@@ -32,7 +31,6 @@ public interface ShippingAddressService {
      * @param username  用户名
      * @param createDTO 创建收货地址数据传输对象
      * @return 创建的收货地址视图对象
-     * @throws java.util.NoSuchElementException 当用户不存在时抛出
      */
     ShippingAddressVO createAddress(String username, ShippingAddressDTO createDTO);
 
@@ -42,8 +40,6 @@ public interface ShippingAddressService {
      * @param username  用户名
      * @param updateDTO 更新收货地址数据传输对象
      * @return 更新后的收货地址视图对象
-     * @throws java.util.NoSuchElementException 当地址不存在时抛出
-     * @throws IllegalArgumentException         当地址不属于该用户时抛出
      */
     ShippingAddressVO updateAddress(String username, ShippingAddressUpdateDTO updateDTO);
 
@@ -52,8 +48,6 @@ public interface ShippingAddressService {
      * 
      * @param username  用户名
      * @param addressId 收货地址ID
-     * @throws java.util.NoSuchElementException 当地址不存在时抛出
-     * @throws IllegalArgumentException         当地址不属于该用户时抛出
      */
     void deleteAddress(String username, Long addressId);
 }

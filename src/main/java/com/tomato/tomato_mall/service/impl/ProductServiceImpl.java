@@ -13,7 +13,6 @@ import com.tomato.tomato_mall.repository.OrderItemRepository;
 import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.repository.ProductRepository;
-import com.tomato.tomato_mall.repository.SpecificationRepository;
 import com.tomato.tomato_mall.repository.StockpileRepository;
 import com.tomato.tomato_mall.service.ProductService;
 import com.tomato.tomato_mall.vo.ProductVO;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 /**
@@ -49,14 +47,13 @@ public class ProductServiceImpl implements ProductService {
     /**
      * 构造函数，通过依赖注入初始化商品服务组件
      * 
-     * @param productRepository       商品数据访问对象，负责商品数据的持久化操作
-     * @param cartRepository          购物车项数据访问对象，负责购物车数据的持久化操作
-     * @param orderItemRepository     订单项数据访问对象，负责订单项数据的持久化操作
-     * @param advertisementRepository 广告数据访问对象，负责广告数据的持久化操作
+     * @param productRepository       商品数据访问对象
+     * @param cartRepository          购物车项数据访问对象
+     * @param orderItemRepository     订单项数据访问对象
+     * @param advertisementRepository 广告数据访问对象
      */
     public ProductServiceImpl(
             ProductRepository productRepository,
-            SpecificationRepository specificationRepository,
             StockpileRepository stockpileRepository,
             CartRepository cartRepository,
             OrderItemRepository orderItemRepository,
@@ -68,16 +65,6 @@ public class ProductServiceImpl implements ProductService {
         this.advertisementRepository = advertisementRepository;
     }
 
-    /**
-     * 创建新商品
-     * <p>
-     * 将DTO转换为实体，保存商品信息，同时创建相关的规格和初始库存。
-     * 使用事务确保数据完整性，所有操作要么全部成功，要么全部失败。
-     * </p>
-     * 
-     * @param createDTO 商品创建数据传输对象，包含创建所需的商品信息
-     * @return 创建成功的商品视图对象
-     */
     @Override
     @Transactional
     public ProductVO createProduct(ProductCreateDTO createDTO) {
@@ -105,17 +92,6 @@ public class ProductServiceImpl implements ProductService {
         return convertToProductVO(savedProduct);
     }
 
-    /**
-     * 删除商品
-     * <p>
-     * 删除指定ID的商品记录及其相关联的规格和库存信息。
-     * 使用事务确保数据一致性，防止部分删除导致的数据异常。
-     * 此方法执行的是逻辑删除。
-     * </p>
-     * 
-     * @param id 要删除的商品ID
-     * @throws NoSuchElementException 当要删除的商品不存在时抛出此异常
-     */
     @Override
     @Transactional
     public void deleteProduct(Long id) {
@@ -153,27 +129,34 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
     }
 
-    /**
-     * 更新商品信息
-     * <p>
-     * 根据传入的更新数据，有选择地更新商品信息。
-     * 只会更新非空字段，保持其他字段不变。
-     * 更新规格信息时, 根据item搜索原有规格, 为空则新增, 否则更新。
-     * </p>
-     * 
-     * @param updateDTO 商品更新数据传输对象
-     * @return 更新后的商品视图对象
-     * @throws NoSuchElementException   当要更新的商品不存在时抛出此异常
-     * @throws IllegalArgumentException 当更新的商品标题已被其他商品使用时抛出此异常，确保商品标题在系统中的唯一性
-     */
     @Override
     @Transactional
     public ProductVO updateProduct(ProductUpdateDTO updateDTO) {
         Product product = productRepository.findById(updateDTO.getId())
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
 
-        // 更新商品字段
-        BeanUtils.copyProperties(updateDTO, product);
+        // 全量更新, 符合 PUT 语义
+        // BeanUtils.copyProperties(updateDTO, product);
+
+        // Bad Practice: 只更新非空字段
+        if (updateDTO.getTitle() != null) {
+            product.setTitle(updateDTO.getTitle());
+        }
+        if (updateDTO.getPrice() != null) {
+            product.setPrice(updateDTO.getPrice());
+        }
+        if (updateDTO.getRate() != null) {
+            product.setRate(updateDTO.getRate());
+        }
+        if (updateDTO.getDescription() != null) {
+            product.setDescription(updateDTO.getDescription());
+        }
+        if (updateDTO.getCover() != null) {
+            product.setCover(updateDTO.getCover());
+        }
+        if (updateDTO.getDetail() != null) {
+            product.setDetail(updateDTO.getDetail());
+        }
 
         // 处理规格更新, 替换更新
         if (updateDTO.getSpecifications() != null) {
@@ -191,15 +174,6 @@ public class ProductServiceImpl implements ProductService {
         return convertToProductVO(updateProduct);
     }
 
-    /**
-     * 获取所有商品
-     * <p>
-     * 查询所有商品信息，并转换为前端展示所需的视图对象列表。
-     * 此方法不会过滤任何商品，返回数据库中的所有商品记录。
-     * </p>
-     * 
-     * @return 所有商品的视图对象列表
-     */
     @Override
     public List<ProductVO> getAllProducts() {
         List<Product> products = productRepository.findAll();
@@ -208,17 +182,6 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 根据ID获取商品
-     * <p>
-     * 查询指定ID的商品详细信息，包括规格信息。
-     * 此方法会检查商品是否存在，不存在则抛出异常。
-     * </p>
-     * 
-     * @param id 要查询的商品ID
-     * @return 商品的视图对象
-     * @throws NoSuchElementException 当指定ID的商品不存在时抛出此异常
-     */
     @Override
     public ProductVO getProductById(Long id) {
         Product product = productRepository.findById(id)

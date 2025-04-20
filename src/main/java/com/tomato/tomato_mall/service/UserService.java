@@ -6,8 +6,6 @@ import com.tomato.tomato_mall.dto.UserUpdateDTO;
 import com.tomato.tomato_mall.vo.UserVO;
 
 import java.util.List;
-import java.util.NoSuchElementException;
-import org.springframework.security.authentication.BadCredentialsException;
 
 /**
  * 用户服务接口
@@ -36,7 +34,6 @@ public interface UserService {
      *
      * @param registerDTO 用户注册数据传输对象，包含注册所需的用户信息
      * @return 注册成功的用户视图对象
-     * @throws UsernameBusinessException 当用户名已被占用时抛出此异常
      */
     UserVO register(UserRegisterDTO registerDTO);
 
@@ -49,8 +46,6 @@ public interface UserService {
      *
      * @param loginDTO 用户登录数据传输对象，包含用户名和密码
      * @return 生成的JWT令牌字符串
-     * @throws NoSuchElementException  当用户不存在时抛出此异常
-     * @throws BadCredentialsException 当密码不正确时抛出此异常
      */
     String login(UserLoginDTO loginDTO);
 
@@ -63,7 +58,6 @@ public interface UserService {
      *
      * @param username 要查询的用户名
      * @return 用户视图对象
-     * @throws NoSuchElementException 当用户不存在时抛出此异常
      */
     UserVO getUserByUsername(String username);
 
@@ -87,7 +81,6 @@ public interface UserService {
      *
      * @param updateDTO 用户更新数据传输对象，包含要更新的字段
      * @return 更新后的用户视图对象
-     * @throws NoSuchElementException 当要更新的用户不存在时抛出此异常
      */
     UserVO updateUser(UserUpdateDTO updateDTO);
 }

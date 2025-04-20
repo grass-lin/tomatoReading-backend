@@ -44,34 +44,14 @@ public class OSSServiceImpl implements OSSService {
     /**
      * 构造函数，通过依赖注入初始化OSS服务组件
      * 
-     * @param ossProperties OSS配置属性，包含存储区域、存储桶名称等基础配置
-     * @param stsProperties STS配置属性，包含访问密钥、角色ARN等安全认证配置
+     * @param ossProperties OSS配置属性
+     * @param stsProperties STS配置属性
      */
     public OSSServiceImpl(OSSProperties ossProperties, STSProperties stsProperties) {
         this.ossProperties = ossProperties;
         this.stsProperties = stsProperties;
     }
 
-    /**
-     * 生成OSS上传临时访问凭证
-     * <p>
-     * 通过阿里云STS服务，为指定类型的文件生成临时访问凭证，允许客户端在有限时间内
-     * 直接上传文件到OSS指定目录。生成的凭证具有严格的权限控制，仅允许执行PutObject操作。
-     * </p>
-     * <p>
-     * 实现流程：
-     * 1. 创建STS客户端并配置认证信息
-     * 2. 构建AssumeRole请求，设置会话名称和有效期
-     * 3. 根据文件类型生成唯一的存储目录路径
-     * 4. 配置访问策略，限制仅能上传文件到指定目录
-     * 5. 发送请求获取临时凭证
-     * 6. 封装凭证信息并返回
-     * </p>
-     * 
-     * @param fileType 文件类型枚举，决定了上传文件的存储目录分类
-     * @return 包含临时访问凭证和存储信息的数据传输对象
-     * @throws RuntimeException 当STS服务请求失败或配置错误时抛出，包装原始异常信息
-     */
     @Override
     public OSSTokenVO generateUploadToken(OSSFileTypeEnum fileType) {
         if (fileType == null) {

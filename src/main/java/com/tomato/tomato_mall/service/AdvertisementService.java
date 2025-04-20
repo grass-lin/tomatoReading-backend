@@ -43,7 +43,6 @@ public interface AdvertisementService {
      *
      * @param id 要查询的广告ID
      * @return 广告视图对象
-     * @throws java.util.NoSuchElementException 当指定ID的广告不存在时抛出此异常
      */
     AdvertisementVO getAdvertisementById(Long id);
 
@@ -56,7 +55,6 @@ public interface AdvertisementService {
      *
      * @param createDTO 广告创建数据传输对象，包含广告标题、内容、图片URL和商品ID等信息
      * @return 创建成功的广告视图对象
-     * @throws java.util.NoSuchElementException 当关联的商品不存在时抛出此异常
      */
     AdvertisementVO createAdvertisement(AdvertisementCreateDTO createDTO);
 
@@ -69,7 +67,6 @@ public interface AdvertisementService {
      *
      * @param updateDTO 广告更新数据传输对象，包含要更新的字段
      * @return 更新后的广告视图对象
-     * @throws java.util.NoSuchElementException 当要更新的广告或关联的商品不存在时抛出此异常
      */
     AdvertisementVO updateAdvertisement(AdvertisementUpdateDTO updateDTO);
 
@@ -81,7 +78,6 @@ public interface AdvertisementService {
      * </p>
      *
      * @param id 要删除的广告ID
-     * @throws java.util.NoSuchElementException 当指定ID的广告不存在时抛出此异常
      */
     void deleteAdvertisement(Long id);
 }

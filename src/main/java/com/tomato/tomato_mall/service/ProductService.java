@@ -33,7 +33,6 @@ public interface ProductService {
      *
      * @param createDTO 商品创建数据传输对象，包含商品名称、价格、描述等信息
      * @return 创建成功的商品视图对象
-     * @throws IllegalArgumentException 当商品标题已存在时抛出此异常
      */
     ProductVO createProduct(ProductCreateDTO createDTO);
 
@@ -57,7 +56,6 @@ public interface ProductService {
      *
      * @param id 要查询的商品ID
      * @return 商品视图对象
-     * @throws java.util.NoSuchElementException 当指定ID的商品不存在时抛出此异常
      */
     ProductVO getProductById(Long id);
 
@@ -70,8 +68,6 @@ public interface ProductService {
      *
      * @param updateDTO 商品更新数据传输对象，包含要更新的字段
      * @return 更新后的商品视图对象
-     * @throws java.util.NoSuchElementException 当要更新的商品不存在时抛出此异常
-     * @throws IllegalArgumentException 当商品标题已存在时抛出此异常
      */
     ProductVO updateProduct(ProductUpdateDTO updateDTO);
 
@@ -83,7 +79,6 @@ public interface ProductService {
      * </p>
      *
      * @param id 要删除的商品ID
-     * @throws java.util.NoSuchElementException 当指定ID的商品不存在时抛出此异常
      */
     void deleteProduct(Long id);
 }

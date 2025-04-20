@@ -37,7 +37,6 @@ public interface OSSService {
      *
      * @param fileType 文件类型枚举，用于确定文件存储的目录分类
      * @return 包含临时访问凭证和存储路径信息的数据传输对象
-     * @throws RuntimeException 当获取凭证过程中遇到网络错误或配置问题时可能抛出此异常
      */
     OSSTokenVO generateUploadToken(OSSFileTypeEnum fileType);
 }

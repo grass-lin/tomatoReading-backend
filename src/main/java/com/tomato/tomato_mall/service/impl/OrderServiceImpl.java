@@ -44,7 +44,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 /**
@@ -92,20 +91,6 @@ public class OrderServiceImpl implements OrderService {
         this.alipayProperties = alipayProperties;
     }
 
-    /**
-     * 创建订单
-     * <p>
-     * 根据用户提交的结算信息创建订单，包括验证购物车项、锁定商品库存、
-     * 计算订单金额、创建订单项并关联购物车项等操作。
-     * 使用事务确保数据一致性，所有操作要么全部成功，要么全部失败。
-     * </p>
-     * 
-     * @param username    用户名，用于识别订单所属用户
-     * @param checkoutDTO 结算数据传输对象，包含创建订单所需的信息
-     * @return 创建成功的订单视图对象
-     * @throws NoSuchElementException   当用户不存在时抛出此异常
-     * @throws IllegalArgumentException 当购物车项不属于当前用户、状态不为激活或库存不足时抛出此异常
-     */
     @Override
     @Transactional
     public OrderDetailVO createOrder(String username, CheckoutDTO checkoutDTO) {
@@ -180,21 +165,6 @@ public class OrderServiceImpl implements OrderService {
         return convertToOrderDetailVO(savedOrder);
     }
 
-    /**
-     * 取消订单
-     * <p>
-     * 取消指定的订单，包括验证订单所属用户、检查订单是否可取消、
-     * 更新订单及订单项状态、释放锁定的库存以及恢复购物车项等操作。
-     * 使用事务确保数据一致性。
-     * </p>
-     * 
-     * @param username       用户名，用于识别订单所属用户
-     * @param cancelOrderDTO 订单取消数据传输对象，包含订单ID和取消原因
-     * @return 取消后的订单视图对象
-     * @throws NoSuchElementException   当用户或订单不存在时抛出此异常
-     * @throws IllegalArgumentException 当订单不属于当前用户时抛出此异常
-     * @throws IllegalStateException    当订单状态不允许取消时抛出此异常
-     */
     @Override
     @Transactional
     public OrderDetailVO cancelOrder(String username, CancelOrderDTO cancelOrderDTO) {
@@ -239,20 +209,6 @@ public class OrderServiceImpl implements OrderService {
         return convertToOrderDetailVO(order);
     }
 
-    /**
-     * 发起支付
-     * <p>
-     * 为指定订单创建支付表单，包括验证订单状态、构建支付宝支付参数、
-     * 创建支付记录等操作。此方法通过支付宝SDK生成支付表单HTML。
-     * 使用事务确保数据一致性。
-     * </p>
-     * 
-     * @param orderId 订单ID
-     * @return 支付视图对象，包含支付表单HTML和相关支付信息
-     * @throws NoSuchElementException 当订单不存在时抛出此异常
-     * @throws IllegalStateException  当订单状态不允许支付时抛出此异常
-     * @throws RuntimeException       当创建支付表单失败时抛出此异常
-     */
     @Override
     @Transactional
     public PaymentVO initiatePayment(String orderId) {
@@ -311,16 +267,6 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    /**
-     * 处理支付回调
-     * <p>
-     * 处理来自支付宝的异步通知，验证签名，更新订单状态并处理库存。
-     * 根据支付结果（成功/失败）执行不同的业务逻辑，确保数据一致性。
-     * </p>
-     *
-     * @param callbackDTO 支付回调数据传输对象，包含支付平台回调的所有参数
-     * @return 是否处理成功，true表示成功处理
-     */
     @Override
     @Transactional
     public boolean handlePaymentCallback(PaymentCallbackDTO callbackDTO) {
@@ -364,107 +310,6 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    /**
-     * 处理支付成功的回调
-     * <p>
-     * 更新订单状态为已支付，更新订单项状态，扣减冻结的库存，
-     * 同时更新支付记录的状态和交易号。
-     * </p>
-     * 
-     * @param order  要处理的订单
-     * @param params 支付回调参数
-     * @return 处理是否成功
-     */
-    private boolean processSuccessfulPayment(Order order, Map<String, String> params) {
-        // 检查订单是否已支付，避免重复处理
-        if (order.getStatus() == OrderStatus.PAID) {
-            return true;
-        }
-
-        // 只有待支付状态的订单可以被处理
-        if (order.getStatus() != OrderStatus.PENDING) {
-            return false;
-        }
-
-        // 更新订单状态
-        order.setStatus(OrderStatus.PAID);
-
-        // 更新订单项状态和库存
-        List<OrderItem> orderItems = order.getItems();
-        orderItems.forEach(item -> {
-            item.setStatus(OrderItemStatus.PAID);
-
-            Stockpile stockpile = stockpileRepository.findByProductId(item.getProduct().getId())
-                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
-            stockpile.setAmount(stockpile.getAmount() - item.getQuantity());
-            stockpile.setFrozen(stockpile.getFrozen() - item.getQuantity());
-            stockpileRepository.save(stockpile);
-
-            // 删除关联的购物车项
-            CartItem cartItem = item.getCartItem();
-            if (cartItem != null) {
-                cartItem.setOrderItem(null);
-                item.setCartItem(null);
-                cartRepository.delete(cartItem);
-            }
-        });
-        order.setItems(orderItems);
-        orderRepository.save(order);
-
-        // 更新支付记录
-        String tradeNo = params.get("trade_no"); // 支付宝交易号
-        List<Payment> payments = paymentRepository.findByOrderAndStatus(
-                order, Payment.PaymentStatus.PENDING);
-        payments.forEach(payment -> {
-            payment.setStatus(Payment.PaymentStatus.SUCCESS);
-            payment.setTradeNo(tradeNo);
-            payment.setCompleteTime(LocalDateTime.now());
-        });
-        paymentRepository.saveAll(payments);
-
-        return true;
-    }
-
-    /**
-     * 处理支付失败的回调
-     * <p>
-     * 更新支付记录状态为失败，但不改变订单状态，
-     * 保留订单待支付状态以允许重试或等待超时处理。
-     * </p>
-     * 
-     * @param order  要处理的订单
-     * @param params 支付回调参数
-     * @return 处理是否成功
-     */
-    private boolean processFailedPayment(Order order, Map<String, String> params) {
-        // 只处理待支付的订单
-        if (order.getStatus() != OrderStatus.PENDING) {
-            return true;
-        }
-
-        // 更新支付记录
-        List<Payment> payments = paymentRepository.findByOrderAndStatus(
-                order, Payment.PaymentStatus.PENDING);
-        payments.forEach(payment -> {
-            payment.setStatus(Payment.PaymentStatus.FAILED);
-            payment.setCompleteTime(LocalDateTime.now());
-        });
-        paymentRepository.saveAll(payments);
-
-        return true;
-    }
-
-    /**
-     * 根据ID获取订单详情
-     * <p>
-     * 查询指定ID的订单详细信息，包括订单基本信息和关联的所有订单项，
-     * 并转换为前端展示所需的详细视图对象。
-     * </p>
-     * 
-     * @param orderId 订单ID
-     * @return 包含订单项的详细订单视图对象
-     * @throws NoSuchElementException 当指定ID的订单不存在时抛出此异常
-     */
     @Override
     public OrderDetailVO getOrderById(String orderId) {
         Order order = orderRepository.findById(orderId)
@@ -473,17 +318,6 @@ public class OrderServiceImpl implements OrderService {
         return convertToOrderDetailVO(order);
     }
 
-    /**
-     * 获取用户所有订单
-     * <p>
-     * 根据用户名获取该用户的所有订单信息，
-     * 将订单实体列表转换为订单视图对象列表返回
-     * </p>
-     *
-     * @param username 用户名
-     * @return 用户的订单视图对象列表
-     * @throws NoSuchElementException 当用户不存在时抛出此异常
-     */
     @Override
     public List<OrderVO> getOrdersByUsername(String username) {
         User user = userRepository.findByUsername(username)
@@ -495,15 +329,6 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 获取所有订单
-     * <p>
-     * 获取系统中的所有订单信息，主要用于管理员查看和统计分析。
-     * 将订单实体列表转换为订单视图对象列表返回。
-     * </p>
-     *
-     * @return 系统中所有订单的视图对象列表
-     */
     @Override
     public List<OrderVO> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
@@ -600,6 +425,96 @@ public class OrderServiceImpl implements OrderService {
                 paymentRepository.save(payment);
             }
         }
+    }
+
+    /**
+     * 处理支付成功的回调
+     * <p>
+     * 更新订单状态为已支付，更新订单项状态，扣减冻结的库存，
+     * 同时更新支付记录的状态和交易号。
+     * </p>
+     * 
+     * @param order  要处理的订单
+     * @param params 支付回调参数
+     * @return 处理是否成功
+     */
+    private boolean processSuccessfulPayment(Order order, Map<String, String> params) {
+        // 检查订单是否已支付，避免重复处理
+        if (order.getStatus() == OrderStatus.PAID) {
+            return true;
+        }
+
+        // 只有待支付状态的订单可以被处理
+        if (order.getStatus() != OrderStatus.PENDING) {
+            return false;
+        }
+
+        // 更新订单状态
+        order.setStatus(OrderStatus.PAID);
+
+        // 更新订单项状态和库存
+        List<OrderItem> orderItems = order.getItems();
+        orderItems.forEach(item -> {
+            item.setStatus(OrderItemStatus.PAID);
+
+            Stockpile stockpile = stockpileRepository.findByProductId(item.getProduct().getId())
+                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.STOCKPILE_NOT_FOUND));
+            stockpile.setAmount(stockpile.getAmount() - item.getQuantity());
+            stockpile.setFrozen(stockpile.getFrozen() - item.getQuantity());
+            stockpileRepository.save(stockpile);
+
+            // 删除关联的购物车项
+            CartItem cartItem = item.getCartItem();
+            if (cartItem != null) {
+                cartItem.setOrderItem(null);
+                item.setCartItem(null);
+                cartRepository.delete(cartItem);
+            }
+        });
+        order.setItems(orderItems);
+        orderRepository.save(order);
+
+        // 更新支付记录
+        String tradeNo = params.get("trade_no"); // 支付宝交易号
+        List<Payment> payments = paymentRepository.findByOrderAndStatus(
+                order, Payment.PaymentStatus.PENDING);
+        payments.forEach(payment -> {
+            payment.setStatus(Payment.PaymentStatus.SUCCESS);
+            payment.setTradeNo(tradeNo);
+            payment.setCompleteTime(LocalDateTime.now());
+        });
+        paymentRepository.saveAll(payments);
+
+        return true;
+    }
+
+    /**
+     * 处理支付失败的回调
+     * <p>
+     * 更新支付记录状态为失败，但不改变订单状态，
+     * 保留订单待支付状态以允许重试或等待超时处理。
+     * </p>
+     * 
+     * @param order  要处理的订单
+     * @param params 支付回调参数
+     * @return 处理是否成功
+     */
+    private boolean processFailedPayment(Order order, Map<String, String> params) {
+        // 只处理待支付的订单
+        if (order.getStatus() != OrderStatus.PENDING) {
+            return true;
+        }
+
+        // 更新支付记录
+        List<Payment> payments = paymentRepository.findByOrderAndStatus(
+                order, Payment.PaymentStatus.PENDING);
+        payments.forEach(payment -> {
+            payment.setStatus(Payment.PaymentStatus.FAILED);
+            payment.setCompleteTime(LocalDateTime.now());
+        });
+        paymentRepository.saveAll(payments);
+
+        return true;
     }
 
     /**

@@ -25,8 +25,6 @@ public interface CartService {
      * @param username   用户名
      * @param cartAddDTO 购物车添加数据传输对象，包含商品ID和数量
      * @return 添加后的购物车商品视图对象
-     * @throws IllegalArgumentException         当商品库存不足时抛出此异常
-     * @throws java.util.NoSuchElementException 当用户或商品不存在时抛出此异常
      */
     CartItemVO addToCart(String username, CartAddDTO cartAddDTO);
 
@@ -38,8 +36,6 @@ public interface CartService {
      *
      * @param username   用户名
      * @param cartItemId 购物车商品ID
-     * @throws IllegalArgumentException         当购物车商品不属于该用户时抛出此异常
-     * @throws java.util.NoSuchElementException 当购物车商品不存在时抛出此异常
      */
     void removeFromCart(String username, Long cartItemId);
 
@@ -54,8 +50,6 @@ public interface CartService {
      * @param cartItemId 购物车商品ID
      * @param quantity   新的商品数量
      * @return 更新后的购物车商品视图对象
-     * @throws IllegalArgumentException         当商品库存不足或购物车商品不属于该用户时抛出此异常
-     * @throws java.util.NoSuchElementException 当购物车商品不存在时抛出此异常
      */
     CartItemVO updateCartItemQuantity(String username, Long cartItemId, Integer quantity);
 
@@ -67,7 +61,6 @@ public interface CartService {
      *
      * @param username 用户名
      * @return 购物车商品视图对象列表
-     * @throws java.util.NoSuchElementException 当用户不存在时抛出此异常
      */
     CartVO getCartItems(String username);
 }

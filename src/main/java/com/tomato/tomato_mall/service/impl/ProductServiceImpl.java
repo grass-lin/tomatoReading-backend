@@ -213,16 +213,14 @@ public class ProductServiceImpl implements ProductService {
 
         // 处理规格更新, 替换更新
         if (updateDTO.getSpecifications() != null) {
-            product.getSpecifications().clear();
-            List<Specification> specifications = updateDTO.getSpecifications().stream()
-                    .map(specDTO -> {
-                        Specification spec = new Specification();
-                        BeanUtils.copyProperties(specDTO, spec);
-                        spec.setProduct(product);
-                        return spec;
-                    })
-                    .collect(Collectors.toList());
-            product.setSpecifications(specifications);
+            List<Specification> existingSpecs = product.getSpecifications();
+            existingSpecs.clear();
+            updateDTO.getSpecifications().forEach(specDTO -> {
+                Specification spec = new Specification();
+                BeanUtils.copyProperties(specDTO, spec);
+                spec.setProduct(product);
+                existingSpecs.add(spec);
+            });
         }
 
         Product updateProduct = productRepository.save(product);

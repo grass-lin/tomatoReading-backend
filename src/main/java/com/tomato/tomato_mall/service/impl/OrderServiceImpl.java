@@ -144,13 +144,9 @@ public class OrderServiceImpl implements OrderService {
                     orderItem.setPrice(product.getPrice());
                     orderItem.setQuantity(quantity);
                     orderItem.updateSubtotal();
-                    // 修改购物车项
-                    cartItem.setStatus(CartItemStatus.CHECKED_OUT);
-                    cartItem.setOrderItem(orderItem);
                     return orderItem;
                 }).collect(Collectors.toList());
         order.setItems(orderItems);
-        // cartRepository.saveAll(cartItems);
 
         // 计算订单总金额
         BigDecimal totalAmount = orderItems.stream()
@@ -160,6 +156,13 @@ public class OrderServiceImpl implements OrderService {
 
         // 保存订单和订单项
         Order savedOrder = orderRepository.save(order);
+
+        // 修改购物车项
+        orderItems.forEach(orderItem -> {
+            CartItem cartItem = orderItem.getCartItem();
+            cartItem.setOrderItem(orderItem);
+            cartItem.setStatus(CartItemStatus.CHECKED_OUT);
+        });
 
         // 返回订单视图对象
         return convertToOrderDetailVO(savedOrder);

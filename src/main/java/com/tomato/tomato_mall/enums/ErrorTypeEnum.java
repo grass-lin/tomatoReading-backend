@@ -21,6 +21,8 @@ public enum ErrorTypeEnum {
 
     ORDER_NOT_FOUND(HttpStatus.BAD_REQUEST, "订单不存在"),
 
+    ORDER_ITEM_NOT_FOUND(HttpStatus.BAD_REQUEST, "订单项不存在"),
+
     STOCKPILE_NOT_FOUND(HttpStatus.BAD_REQUEST, "商品库存不存在"),
 
     CARTITEM_NOT_FOUND(HttpStatus.BAD_REQUEST, "购物车商品不存在"),
@@ -38,6 +40,8 @@ public enum ErrorTypeEnum {
     CARTITEM_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "购物车商品不属于当前用户"),
 
     ORDER_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "订单不属于当前用户"),
+
+    ORDER_ITEM_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "订单项不属于当前用户"),
 
     SHIPPING_ADDRESS_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "收货信息不属于当前用户"),
 
@@ -65,7 +69,11 @@ public enum ErrorTypeEnum {
 
     CREATE_PAY_FORM_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "创建支付表单失败"),
 
-    
+    ORDER_ITEM_STATUS_ERROR(HttpStatus.BAD_REQUEST, "订单商品状态错误"),
+
+    LOGISTICS_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "物流信息已存在"),
+
+    LOGISTICS_NOT_FOUND(HttpStatus.BAD_REQUEST, "物流信息不存在"),
 
     // NoResourceFoundException
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "请求的资源不存在: %s %s"),

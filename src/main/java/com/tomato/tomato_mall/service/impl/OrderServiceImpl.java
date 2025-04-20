@@ -21,6 +21,7 @@ import com.tomato.tomato_mall.entity.Product;
 import com.tomato.tomato_mall.entity.Stockpile;
 import com.tomato.tomato_mall.entity.User;
 import com.tomato.tomato_mall.repository.CartRepository;
+import com.tomato.tomato_mall.repository.OrderItemRepository;
 import com.tomato.tomato_mall.repository.OrderRepository;
 import com.tomato.tomato_mall.repository.PaymentRepository;
 import com.tomato.tomato_mall.repository.ProductRepository;
@@ -60,6 +61,7 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
@@ -69,18 +71,10 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 构造函数，通过依赖注入初始化订单服务组件
-     * 
-     * @param orderRepository     订单数据访问对象，负责订单数据的持久化操作
-     * @param paymentRepository   支付数据访问对象，负责支付数据的持久化操作
-     * @param userRepository      用户数据访问对象，负责用户数据的持久化操作
-     * @param cartRepository      购物车数据访问对象，负责购物车数据的持久化操作
-     * @param productRepository   商品数据访问对象，负责商品数据的持久化操作
-     * @param stockpileRepository 库存数据访问对象，负责库存数据的持久化操作
-     * @param alipayClient        支付宝客户端，用于调用支付宝API
-     * @param alipayProperties    支付宝配置属性，包含支付宝接口相关配置
      */
     public OrderServiceImpl(
             OrderRepository orderRepository,
+            OrderItemRepository orderItemRepository,
             PaymentRepository paymentRepository,
             UserRepository userRepository,
             CartRepository cartRepository,
@@ -89,6 +83,7 @@ public class OrderServiceImpl implements OrderService {
             AlipayClient alipayClient,
             AlipayProperties alipayProperties) {
         this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
         this.cartRepository = cartRepository;
@@ -515,6 +510,42 @@ public class OrderServiceImpl implements OrderService {
         return orders.stream()
                 .map(this::convertToOrderVO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public OrderItemVO confirmReceive(String username, Long orderItemId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
+
+        OrderItem orderItem = orderItemRepository.findById(orderItemId)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_ITEM_NOT_FOUND));
+
+        // 验证订单项属于当前用户
+        if (!orderItem.getOrder().getUser().getId().equals(user.getId())) {
+            throw new BusinessException(ErrorTypeEnum.ORDER_ITEM_NOT_BELONG_TO_USER);
+        }
+
+        // 验证订单项状态是否为已发货
+        if (orderItem.getStatus() != OrderItem.OrderItemStatus.SHIPPED) {
+            throw new BusinessException(ErrorTypeEnum.ORDER_ITEM_STATUS_ERROR);
+        }
+
+        // 更新订单项状态为已完成
+        orderItem.setStatus(OrderItem.OrderItemStatus.COMPLETED);
+        orderItemRepository.save(orderItem);
+
+        // 检查订单中所有订单项是否都已完成，如果是，更新订单状态为已完成
+        Order order = orderItem.getOrder();
+        boolean allCompleted = order.getItems().stream()
+                .allMatch(item -> item.getStatus() == OrderItem.OrderItemStatus.COMPLETED);
+
+        if (allCompleted) {
+            order.setStatus(Order.OrderStatus.COMPLETED);
+            orderRepository.save(order);
+        }
+
+        return convertToOrderItemVO(orderItem);
     }
 
     /**

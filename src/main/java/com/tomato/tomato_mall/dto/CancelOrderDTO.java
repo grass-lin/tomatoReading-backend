@@ -21,7 +21,7 @@ public class CancelOrderDTO {
      * 用于标识需要取消的订单
      */
     @NotNull(message = "Order ID must not be empty")
-    private Long orderId;
+    private String orderId;
 
     /**
      * 取消原因

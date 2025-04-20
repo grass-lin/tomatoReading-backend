@@ -124,16 +124,6 @@ public class CartItem {
          * 已结算状态 - 商品已被结算，等待支付
          */
         CHECKED_OUT,
-
-        /**
-         * 已完成状态 - 对应订单已支付完成
-         */
-        COMPLETED,
-
-        /**
-         * 已取消状态 - 对应订单已取消
-         */
-        CANCELLED
     }
 
     /**

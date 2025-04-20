@@ -34,7 +34,7 @@ public class OrderDetailVO {
      * 订单的唯一标识符
      * </p>
      */
-    private Long id;
+    private String id;
 
     /**
      * 用户名

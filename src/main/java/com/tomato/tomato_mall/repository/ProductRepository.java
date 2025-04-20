@@ -1,9 +1,6 @@
 package com.tomato.tomato_mall.repository;
 
 import com.tomato.tomato_mall.entity.Product;
-import com.tomato.tomato_mall.entity.Product.ProductStatus;
-
-import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -24,11 +21,4 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    /**
-     * 根据商品状态查询商品列表
-     * 
-     * @param status 商品状态
-     * @return 指定状态的商品列表
-     */
-    List<Product> findByStatus(ProductStatus status);
 }

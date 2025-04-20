@@ -2,6 +2,7 @@ package com.tomato.tomato_mall.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,12 +22,12 @@ import java.util.List;
 public class Order {
 
     /**
-     * 订单ID
+     * 订单ID - 基于时间戳生成
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @UuidGenerator
     @Column(name = "order_id")
-    private Long id;
+    private String id;
 
     /**
      * 关联的用户
@@ -121,11 +122,6 @@ public class Order {
          * 已支付状态 - 订单已完成支付，等待处理
          */
         PAID,
-
-        /**
-         * 处理中状态 - 订单正在处理，准备发货
-         */
-        PROCESSING,
 
         /**
          * 已完成状态 - 买家已确认收货，订单完成

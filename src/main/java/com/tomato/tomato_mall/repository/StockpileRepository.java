@@ -32,14 +32,4 @@ public interface StockpileRepository extends JpaRepository<Stockpile, Long> {
      * @return 封装在Optional中的库存实体；如果库存不存在则返回空Optional
      */
     Optional<Stockpile> findByProductId(Long productId);
-    
-    /**
-     * 根据商品ID删除库存
-     * <p>
-     * 删除指定商品的库存信息。该方法通常用于商品删除时，同时删除关联的库存记录。
-     * </p>
-     *
-     * @param productId 要删除库存的商品ID
-     */
-    void deleteByProductId(Long productId);
 }

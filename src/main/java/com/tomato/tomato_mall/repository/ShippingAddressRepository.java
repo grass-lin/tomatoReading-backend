@@ -26,12 +26,4 @@ public interface ShippingAddressRepository extends JpaRepository<ShippingAddress
      * @return 用户的所有收货地址列表
      */
     List<ShippingAddress> findByUser(User user);
-    
-    /**
-     * 根据用户ID查找所有收货地址
-     * 
-     * @param userId 用户ID
-     * @return 用户的所有收货地址列表
-     */
-    List<ShippingAddress> findByUserId(Long userId);
 }

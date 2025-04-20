@@ -120,37 +120,4 @@ public class Product {
      */
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Stockpile stockpile;
-
-    /**
-     * 商品状态
-     * <p>
-     * 商品的当前状态，使用枚举类型表示。
-     * 默认值为ACTIVE，表示商品正常销售中。
-     * </p>
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private ProductStatus status = ProductStatus.ACTIVE;
-
-    /**
-     * 商品状态枚举
-     * <p>
-     * 定义了商品的可能状态，包括：
-     * ACTIVE - 正常销售中
-     * INACTIVE - 暂停销售
-     * DELETED - 逻辑删除
-     * </p>
-     */
-    public enum ProductStatus {
-        /**
-         * 活跃状态 - 正常销售中
-         */
-        ACTIVE,
-
-        /**
-         * 已删除状态 - 逻辑删除
-         */
-        DELETED
-    }
-
 }

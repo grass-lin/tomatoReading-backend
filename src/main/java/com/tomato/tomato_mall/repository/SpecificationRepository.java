@@ -4,8 +4,6 @@ import com.tomato.tomato_mall.entity.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 /**
  * 商品规格数据访问仓库
  * <p>
@@ -21,25 +19,4 @@ import java.util.List;
  */
 @Repository
 public interface SpecificationRepository extends JpaRepository<Specification, Long> {
-    /**
-     * 根据商品ID查找所有规格
-     * <p>
-     * 查询指定商品的所有规格信息。该方法基于Spring Data的命名查询约定，
-     * 会自动转换为相应的SQL查询。
-     * </p>
-     *
-     * @param productId 要查询规格的商品ID
-     * @return 该商品的所有规格列表
-     */
-    List<Specification> findByProductId(Long productId);
-    
-    /**
-     * 根据商品ID删除所有规格
-     * <p>
-     * 删除指定商品的所有规格信息。该方法通常用于商品更新时，先删除旧的规格，然后添加新的规格。
-     * </p>
-     *
-     * @param productId 要删除规格的商品ID
-     */
-    void deleteByProductId(Long productId);
 }

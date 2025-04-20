@@ -1,10 +1,8 @@
 package com.tomato.tomato_mall.repository;
 
 import com.tomato.tomato_mall.entity.CartItem;
-import com.tomato.tomato_mall.entity.CartItem.CartItemStatus;
 import com.tomato.tomato_mall.entity.User;
 import com.tomato.tomato_mall.entity.Product;
-import com.tomato.tomato_mall.entity.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -55,18 +53,8 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
     Optional<CartItem> findByUserAndProductAndStatus(User user, Product product, CartItem.CartItemStatus status);
 
     /**
-     * 根据商品ID和状态查找购物车项
+     * 根据商品ID查找删除购物车项
      * @param productId
-     * @param status
-     * @return
      */
-    List<CartItem> findByProductIdAndStatusNot(Long productId, CartItemStatus status);
-
-    /**
-     * 根据订单项查找购物车项
-     * 
-     * @param orderItem 订单项
-     * @return 关联的购物车项
-     */
-    Optional<CartItem> findByOrderItem(OrderItem orderItem);
+    void deleteByProductId(Long productId);
 }

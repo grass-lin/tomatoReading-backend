@@ -2,12 +2,9 @@ package com.tomato.tomato_mall.service.impl;
 
 import com.tomato.tomato_mall.dto.ProductCreateDTO;
 import com.tomato.tomato_mall.dto.ProductUpdateDTO;
-import com.tomato.tomato_mall.entity.CartItem;
 import com.tomato.tomato_mall.entity.Product;
-import com.tomato.tomato_mall.entity.Product.ProductStatus;
 import com.tomato.tomato_mall.entity.Specification;
 import com.tomato.tomato_mall.entity.Stockpile;
-import com.tomato.tomato_mall.entity.CartItem.CartItemStatus;
 import com.tomato.tomato_mall.entity.OrderItem;
 import com.tomato.tomato_mall.entity.OrderItem.OrderItemStatus;
 import com.tomato.tomato_mall.repository.AdvertisementRepository;
@@ -125,24 +122,16 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
 
-        if (product.getStatus().equals(ProductStatus.DELETED)) {
-            throw new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND);
-        }
-
-        if (orderItemRepository.existsByProductIdAndStatus(id, OrderItemStatus.PENDING)) {
+        // 未支付订单项占用商品时禁止删除
+        if (orderItemRepository.existsByProductAndStatus(product, OrderItemStatus.PENDING)) {
             throw new BusinessException(ErrorTypeEnum.PRODUCT_OCCUPIED_BY_ORDER);
         }
 
-        // 处理购物车项
-        List<CartItem> cartItems = cartRepository.findByProductIdAndStatusNot(
-                id, CartItemStatus.COMPLETED);
-        cartItems.forEach(item -> {
-            item.setStatus(CartItemStatus.CANCELLED);
-        });
-        cartRepository.saveAll(cartItems);
+        // 删除关联购物车项
+        cartRepository.deleteByProductId(id);
 
-        // 处理订单项
-        List<OrderItem> orderItems = orderItemRepository.findByProductId(id);
+        // 处理关联订单项
+        List<OrderItem> orderItems = orderItemRepository.findByProduct(product);
         orderItems.forEach(item -> {
             item.setProduct(null);
         });
@@ -151,17 +140,17 @@ public class ProductServiceImpl implements ProductService {
         // 删除规格
         product.getSpecifications().clear();
 
-        // 删除库存
+        // 删除关联库存
         Stockpile stockpile = product.getStockpile();
         if (stockpile != null) {
             product.setStockpile(null);
             stockpileRepository.delete(stockpile);
         }
 
-        // 删除广告
+        // 删除关联广告
         advertisementRepository.deleteAllByProduct(product);
 
-        product.setStatus(ProductStatus.DELETED);
+        productRepository.delete(product);
     }
 
     /**
@@ -182,34 +171,9 @@ public class ProductServiceImpl implements ProductService {
     public ProductVO updateProduct(ProductUpdateDTO updateDTO) {
         Product product = productRepository.findById(updateDTO.getId())
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
-        if (!product.getStatus().equals(ProductStatus.ACTIVE)) {
-            throw new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND);
-        }
 
-        // 有选择地更新商品字段
-        if (updateDTO.getTitle() != null) {
-            product.setTitle(updateDTO.getTitle());
-        }
-
-        if (updateDTO.getPrice() != null) {
-            product.setPrice(updateDTO.getPrice());
-        }
-
-        if (updateDTO.getRate() != null) {
-            product.setRate(updateDTO.getRate());
-        }
-
-        if (updateDTO.getDescription() != null) {
-            product.setDescription(updateDTO.getDescription());
-        }
-
-        if (updateDTO.getCover() != null) {
-            product.setCover(updateDTO.getCover());
-        }
-
-        if (updateDTO.getDetail() != null) {
-            product.setDetail(updateDTO.getDetail());
-        }
+        // 更新商品字段
+        BeanUtils.copyProperties(updateDTO, product);
 
         // 处理规格更新, 替换更新
         if (updateDTO.getSpecifications() != null) {
@@ -238,7 +202,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     public List<ProductVO> getAllProducts() {
-        List<Product> products = productRepository.findByStatus(ProductStatus.ACTIVE);
+        List<Product> products = productRepository.findAll();
         return products.stream()
                 .map(this::convertToProductVO)
                 .collect(Collectors.toList());
@@ -259,9 +223,6 @@ public class ProductServiceImpl implements ProductService {
     public ProductVO getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
-        if (!product.getStatus().equals(ProductStatus.ACTIVE)) {
-            throw new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND);
-        }
         return convertToProductVO(product);
     }
 

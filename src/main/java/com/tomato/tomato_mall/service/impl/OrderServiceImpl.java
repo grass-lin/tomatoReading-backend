@@ -206,8 +206,7 @@ public class OrderServiceImpl implements OrderService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
-        Long orderId = cancelOrderDTO.getOrderId();
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findById(cancelOrderDTO.getOrderId())
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_NOT_FOUND));
 
         // 验证订单属于当前用户
@@ -263,8 +262,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public PaymentVO initiatePayment(String orderId) {
         // 查询订单
-        Long orderIdLong = Long.parseLong(orderId);
-        Order order = orderRepository.findById(orderIdLong)
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_NOT_FOUND));
 
         // 验证订单状态
@@ -347,13 +345,12 @@ public class OrderServiceImpl implements OrderService {
 
             // 获取交易状态和订单ID
             String tradeStatus = params.get("trade_status");
-            String orderIdStr = params.get("out_trade_no");
+            String orderId = params.get("out_trade_no");
 
-            if (orderIdStr == null) {
+            if (orderId == null) {
                 return false;
             }
 
-            Long orderId = Long.parseLong(orderIdStr);
             Order order = orderRepository.findById(orderId)
                     .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_NOT_FOUND));
 
@@ -475,8 +472,7 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public OrderDetailVO getOrderById(String orderId) {
-        Long orderIdLong = Long.parseLong(orderId);
-        Order order = orderRepository.findById(orderIdLong)
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ORDER_NOT_FOUND));
 
         return convertToOrderDetailVO(order);

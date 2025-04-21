@@ -33,6 +33,10 @@ public enum ErrorTypeEnum {
 
     SHIPPING_ADDRESS_NOT_FOUND(HttpStatus.BAD_REQUEST, "收货信息不存在"),
 
+    LOGISTICS_NOT_FOUND(HttpStatus.BAD_REQUEST, "物流信息不存在"),
+
+    CONVERSATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "会话不存在"),
+
 
     // 不属于
     USER_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "不能访问其他用户的信息"),
@@ -44,6 +48,8 @@ public enum ErrorTypeEnum {
     ORDER_ITEM_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "订单项不属于当前用户"),
 
     SHIPPING_ADDRESS_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "收货信息不属于当前用户"),
+
+    CONVERSATION_NOT_BELONG_TO_USER(HttpStatus.BAD_REQUEST, "会话不属于当前用户"),
 
 
     // OSS
@@ -73,7 +79,8 @@ public enum ErrorTypeEnum {
 
     LOGISTICS_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "物流信息已存在"),
 
-    LOGISTICS_NOT_FOUND(HttpStatus.BAD_REQUEST, "物流信息不存在"),
+    RESPONSE_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "获取回复失败"),
+
 
     // NoResourceFoundException
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "请求的资源不存在: %s %s"),

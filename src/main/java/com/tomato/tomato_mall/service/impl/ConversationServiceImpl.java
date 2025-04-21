@@ -1,0 +1,169 @@
+package com.tomato.tomato_mall.service.impl;
+
+import com.tomato.tomato_mall.dto.ConversationCreateDTO;
+import com.tomato.tomato_mall.dto.MessageCreateDTO;
+import com.tomato.tomato_mall.entity.Conversation;
+import com.tomato.tomato_mall.entity.Message;
+import com.tomato.tomato_mall.entity.User;
+import com.tomato.tomato_mall.entity.Message.Role;
+import com.tomato.tomato_mall.enums.ErrorTypeEnum;
+import com.tomato.tomato_mall.exception.BusinessException;
+import com.tomato.tomato_mall.repository.ConversationRepository;
+import com.tomato.tomato_mall.repository.MessageRepository;
+import com.tomato.tomato_mall.repository.UserRepository;
+import com.tomato.tomato_mall.service.ConversationService;
+import com.tomato.tomato_mall.vo.ConversationVO;
+import com.tomato.tomato_mall.vo.MessageVO;
+
+import org.springframework.ai.chat.client.*;
+import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class ConversationServiceImpl implements ConversationService {
+
+    private final ConversationRepository conversationRepository;
+    private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
+    private final ChatClient chatClient;
+
+    public ConversationServiceImpl(
+            ConversationRepository conversationRepository,
+            MessageRepository messageRepository,
+            UserRepository userRepository,
+            ChatClient chatClient) {
+        this.conversationRepository = conversationRepository;
+        this.messageRepository = messageRepository;
+        this.userRepository = userRepository;
+        this.chatClient = chatClient;
+    }
+
+    @Override
+    public List<ConversationVO> getUserConversations(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
+
+        List<Conversation> conversations = conversationRepository.findByUserOrderByUpdateTimeDesc(user);
+        return conversations.stream()
+                .map(this::convertToConversationVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public ConversationVO createConversation(String username, ConversationCreateDTO createDTO) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
+
+        Conversation conversation = new Conversation();
+        conversation.setUser(user);
+        conversation.setTitle(createDTO.getTitle());
+
+        Conversation savedConversation = conversationRepository.save(conversation);
+        return convertToConversationVO(savedConversation);
+    }
+
+    @Override
+    public ConversationVO getConversation(String username, Long conversationId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
+
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_FOUND));
+
+        if (!conversation.getUser().getId().equals(user.getId())) {
+            throw new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_BELONG_TO_USER);
+        }
+
+        return convertToConversationVO(conversation);
+    }
+
+    @Override
+    @Transactional
+    public void deleteConversation(String username, Long conversationId) {
+        // 验证用户和会话
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
+
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_FOUND));
+
+        if (!conversation.getUser().getId().equals(user.getId())) {
+            throw new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_BELONG_TO_USER);
+        }
+
+        conversationRepository.delete(conversation);
+    }
+
+    @Override
+    @Transactional
+    public MessageVO sendMessage(String username, Long conversationId, MessageCreateDTO messageDTO) {
+        // 验证用户和会话
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
+
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_FOUND));
+
+        if (!conversation.getUser().getId().equals(user.getId())) {
+            throw new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_BELONG_TO_USER);
+        }
+
+        // 保存用户消息
+        Message userMessage = new Message();
+        userMessage.setConversation(conversation);
+        userMessage.setRole(Role.USER);
+        userMessage.setContent(messageDTO.getContent());
+        userMessage = messageRepository.save(userMessage);
+
+        String conversationKey = "conversation-" + conversationId;
+
+        try {
+            String response = chatClient.prompt()
+                .user(messageDTO.getContent())
+                .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationKey))
+                .call()
+                .content();
+                
+
+            // 保存AI回复
+            Message assistantMessage = new Message();
+            assistantMessage.setConversation(conversation);
+            assistantMessage.setRole(Role.ASSISTANT);
+            assistantMessage.setContent(response);
+            assistantMessage = messageRepository.save(assistantMessage);
+
+            // 更新会话
+            conversationRepository.save(conversation);
+
+            return convertToMessageVO(assistantMessage);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorTypeEnum.RESPONSE_FETCH_FAILED);
+        }
+    }
+
+    private ConversationVO convertToConversationVO(Conversation conversation) {
+        ConversationVO vo = new ConversationVO();
+        BeanUtils.copyProperties(conversation, vo);
+
+        List<Message> messages = messageRepository.findByConversationOrderByCreateTime(conversation);
+        List<MessageVO> messageVOs = messages.stream()
+                .map(this::convertToMessageVO)
+                .collect(Collectors.toList());
+        vo.setMessages(messageVOs);
+
+        return vo;
+    }
+
+    private MessageVO convertToMessageVO(Message message) {
+        MessageVO vo = new MessageVO();
+        BeanUtils.copyProperties(message, vo);
+        vo.setRole(message.getRole().toString());
+        return vo;
+    }
+}

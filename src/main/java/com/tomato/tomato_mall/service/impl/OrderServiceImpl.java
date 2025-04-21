@@ -135,6 +135,8 @@ public class OrderServiceImpl implements OrderService {
                     }
                     stockpile.setFrozen(stockpile.getFrozen() + quantity);
                     stockpileRepository.save(stockpile);
+                    // 修改购物车项状态
+                    cartItem.setStatus(CartItemStatus.CHECKED_OUT);
                     // 创建订单项
                     OrderItem orderItem = new OrderItem();
                     orderItem.setOrder(order);
@@ -154,17 +156,10 @@ public class OrderServiceImpl implements OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         order.setTotalAmount(totalAmount);
 
-        // 保存订单和订单项
+        // 保存订单
         Order savedOrder = orderRepository.save(order);
 
-        // 修改购物车项
-        orderItems.forEach(orderItem -> {
-            CartItem cartItem = orderItem.getCartItem();
-            cartItem.setOrderItem(orderItem);
-            cartItem.setStatus(CartItemStatus.CHECKED_OUT);
-        });
-
-        // 返回订单视图对象
+        // 返回保存的订单视图对象
         return convertToOrderDetailVO(savedOrder);
     }
 
@@ -202,11 +197,11 @@ public class OrderServiceImpl implements OrderService {
             stockpile.setFrozen(stockpile.getFrozen() - item.getQuantity());
             // 恢复购物车项状态并清空关联
             CartItem cartItem = item.getCartItem();
-            cartItem.setStatus(CartItemStatus.ACTIVE);
-            cartItem.setOrderItem(null);
-            item.setCartItem(null);
+            if (cartItem != null) {
+                cartItem.setStatus(CartItemStatus.ACTIVE);
+                item.setCartItem(null);   
+            }
         });
-        order.setItems(orderItems);
         orderRepository.save(order);
 
         return convertToOrderDetailVO(order);
@@ -412,12 +407,10 @@ public class OrderServiceImpl implements OrderService {
                 // 删除关联的购物车项
                 CartItem cartItem = item.getCartItem();
                 if (cartItem != null) {
-                    cartItem.setOrderItem(null);
                     item.setCartItem(null);
                     cartRepository.delete(cartItem);
                 }
             });
-            order.setItems(orderItems);
             orderRepository.save(order);
 
             // 更新支付记录
@@ -469,12 +462,10 @@ public class OrderServiceImpl implements OrderService {
             // 删除关联的购物车项
             CartItem cartItem = item.getCartItem();
             if (cartItem != null) {
-                cartItem.setOrderItem(null);
                 item.setCartItem(null);
                 cartRepository.delete(cartItem);
             }
         });
-        order.setItems(orderItems);
         orderRepository.save(order);
 
         // 更新支付记录

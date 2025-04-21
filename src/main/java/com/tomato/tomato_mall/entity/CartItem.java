@@ -82,9 +82,9 @@ public class CartItem {
     /**
      * 关联的订单项
      */
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_item_id", nullable = true)
-    private OrderItem orderItem;
+    // @OneToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "order_item_id", nullable = true)
+    // private OrderItem orderItem;
 
     /**
      * 购物车商品状态

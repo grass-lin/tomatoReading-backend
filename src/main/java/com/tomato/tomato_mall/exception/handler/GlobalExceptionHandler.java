@@ -24,18 +24,18 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
         }
         return buildErrorResponse(ex.getErrorType());
     }
-       
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ResponseVO<Map<String, String>>> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
-        
+
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        
+
         return buildErrorResponseWithData(ErrorTypeEnum.VALIDATION_ERROR, errors);
     }
 
@@ -44,7 +44,8 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
         return buildErrorResponse(ErrorTypeEnum.RESOURCE_NOT_FOUND, ex.getHttpMethod(), ex.getResourcePath());
     }
 
-    // 由 https://www.cnblogs.com/wang-yaz/p/13225830.html，默认的静态资源映射会有 /** 通配符，就不会抛出这个错误
+    // 由 https://www.cnblogs.com/wang-yaz/p/13225830.html，默认的静态资源映射会有 /**
+    // 通配符，就不会抛出这个错误
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ResponseVO<Void>> handleNoHandlerFoundException(NoHandlerFoundException ex) {
         return buildErrorResponse(ErrorTypeEnum.HANDLER_NOT_FOUND, ex.getHttpMethod(), ex.getRequestURL());
@@ -55,10 +56,12 @@ public class GlobalExceptionHandler extends BaseExceptionHandler {
             HttpRequestMethodNotSupportedException ex) {
         return buildErrorResponse(ErrorTypeEnum.METHOD_NOT_SUPPORTED, ex.getMethod());
     }
-       
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ResponseVO<Void>> handleGenericException(Exception ex) {
+    public ResponseEntity<ResponseVO<String>> handleGenericException(Exception ex) {
         System.err.println("An unexpected error " + "[" + ex + "]" + " occurred: " + ex.getMessage());
-        return buildErrorResponse(ErrorTypeEnum.INTERNAL_SERVER_ERROR);
+        // return buildErrorResponse(ErrorTypeEnum.INTERNAL_SERVER_ERROR);
+        // For Test Environment
+        return buildErrorResponseWithData(ErrorTypeEnum.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 }

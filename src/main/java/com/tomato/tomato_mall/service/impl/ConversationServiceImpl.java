@@ -24,6 +24,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -103,7 +104,7 @@ public class ConversationServiceImpl implements ConversationService {
             throw new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_BELONG_TO_USER);
         }
 
-        String conversationKey = conversationId.substring(0,12);
+        String conversationKey = conversationId.substring(0, 12);
         chatMemory.clear(conversationKey);
         conversationRepository.delete(conversation);
     }
@@ -129,7 +130,7 @@ public class ConversationServiceImpl implements ConversationService {
         userMessage.setContent(messageDTO.getContent());
         userMessage = messageRepository.save(userMessage);
 
-        String conversationKey = conversationId.substring(0,12);
+        String conversationKey = conversationId.substring(0, 12);
 
         try {
             String response = chatClient.prompt()
@@ -146,6 +147,7 @@ public class ConversationServiceImpl implements ConversationService {
             assistantMessage = messageRepository.save(assistantMessage);
 
             // 更新会话
+            conversation.setUpdateTime(LocalDateTime.now());
             conversationRepository.save(conversation);
 
             return convertToMessageVO(assistantMessage);
@@ -172,7 +174,7 @@ public class ConversationServiceImpl implements ConversationService {
         userMessage.setRole(Role.USER);
         userMessage.setContent(messageDTO.getContent());
         userMessage = messageRepository.save(userMessage);
-        String conversationKey = conversationId.substring(0,12);
+        String conversationKey = conversationId.substring(0, 12);
 
         // 创建AI回复消息对象，但先不保存内容
         Message assistantMessage = new Message();
@@ -205,6 +207,7 @@ public class ConversationServiceImpl implements ConversationService {
                         messageRepository.save(msg);
 
                         // 更新会话
+                        conversation.setUpdateTime(LocalDateTime.now());
                         conversationRepository.save(conversation);
                     });
                 });

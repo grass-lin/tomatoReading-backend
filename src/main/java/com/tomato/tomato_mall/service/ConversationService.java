@@ -15,11 +15,11 @@ public interface ConversationService {
     
     ConversationVO createConversation(String username, ConversationCreateDTO createDTO);
     
-    ConversationVO getConversation(String username, Long conversationId);
+    ConversationVO getConversation(String username, String conversationId);
     
-    void deleteConversation(String username, Long conversationId);
+    void deleteConversation(String username, String conversationId);
     
-    MessageVO getMessage(String username, Long conversationId, MessageCreateDTO messageDTO);
+    MessageVO getMessage(String username, String conversationId, MessageCreateDTO messageDTO);
 
-    Flux<String> getStreamMessage(String username, Long conversationId, MessageCreateDTO messageDTO);
+    Flux<String> getStreamMessage(String username, String conversationId, MessageCreateDTO messageDTO);
 }

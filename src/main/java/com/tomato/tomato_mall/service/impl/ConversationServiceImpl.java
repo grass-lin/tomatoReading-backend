@@ -56,11 +56,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         List<Conversation> conversations = conversationRepository.findByUserOrderByUpdateTimeDesc(user);
         return conversations.stream()
-                .map(conversation -> {
-                    ConversationVO conversationVO = convertToConversationVO(conversation);
-                    conversationVO.setMessages(null);
-                    return conversationVO;
-                })
+                .map(this::convertToConversationVO)
                 .collect(Collectors.toList());
     }
 
@@ -75,11 +71,11 @@ public class ConversationServiceImpl implements ConversationService {
         conversation.setTitle(createDTO.getTitle());
 
         Conversation savedConversation = conversationRepository.save(conversation);
-        return convertToConversationVO(savedConversation);
+        return convertToConversationVO(savedConversation, true);
     }
 
     @Override
-    public ConversationVO getConversation(String username, Long conversationId) {
+    public ConversationVO getConversation(String username, String conversationId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
 
@@ -90,12 +86,12 @@ public class ConversationServiceImpl implements ConversationService {
             throw new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_BELONG_TO_USER);
         }
 
-        return convertToConversationVO(conversation);
+        return convertToConversationVO(conversation, true);
     }
 
     @Override
     @Transactional
-    public void deleteConversation(String username, Long conversationId) {
+    public void deleteConversation(String username, String conversationId) {
         // 验证用户和会话
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
@@ -107,14 +103,14 @@ public class ConversationServiceImpl implements ConversationService {
             throw new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_BELONG_TO_USER);
         }
 
-        String conversationKey = "conversation-" + conversationId;
+        String conversationKey = conversationId.substring(0,12);
         chatMemory.clear(conversationKey);
         conversationRepository.delete(conversation);
     }
 
     @Override
     @Transactional
-    public MessageVO getMessage(String username, Long conversationId, MessageCreateDTO messageDTO) {
+    public MessageVO getMessage(String username, String conversationId, MessageCreateDTO messageDTO) {
         // 验证用户和会话
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
@@ -133,7 +129,7 @@ public class ConversationServiceImpl implements ConversationService {
         userMessage.setContent(messageDTO.getContent());
         userMessage = messageRepository.save(userMessage);
 
-        String conversationKey = "conversation-" + conversationId;
+        String conversationKey = conversationId.substring(0,12);
 
         try {
             String response = chatClient.prompt()
@@ -160,7 +156,7 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     @Transactional
-    public Flux<String> getStreamMessage(String username, Long conversationId, MessageCreateDTO messageDTO) {
+    public Flux<String> getStreamMessage(String username, String conversationId, MessageCreateDTO messageDTO) {
         // 验证用户和会话
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
@@ -176,7 +172,7 @@ public class ConversationServiceImpl implements ConversationService {
         userMessage.setRole(Role.USER);
         userMessage.setContent(messageDTO.getContent());
         userMessage = messageRepository.save(userMessage);
-        String conversationKey = "conversation-" + conversationId;
+        String conversationKey = conversationId.substring(0,12);
 
         // 创建AI回复消息对象，但先不保存内容
         Message assistantMessage = new Message();
@@ -187,7 +183,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         // 最终要保存的完整内容
         final StringBuilder completeResponse = new StringBuilder();
-        final Long assistantMessageId = assistantMessage.getId();
+        final String assistantMessageId = assistantMessage.getId();
 
         // 获取流式回复并处理
         Flux<String> responseFlux = chatClient.prompt()
@@ -215,14 +211,20 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     private ConversationVO convertToConversationVO(Conversation conversation) {
+        return convertToConversationVO(conversation, false);
+    }
+
+    private ConversationVO convertToConversationVO(Conversation conversation, boolean hasMessages) {
         ConversationVO vo = new ConversationVO();
         BeanUtils.copyProperties(conversation, vo);
 
-        List<Message> messages = messageRepository.findByConversationOrderByCreateTime(conversation);
-        List<MessageVO> messageVOs = messages.stream()
-                .map(this::convertToMessageVO)
-                .collect(Collectors.toList());
-        vo.setMessages(messageVOs);
+        if (hasMessages) {
+            List<Message> messages = messageRepository.findByConversationOrderByCreateTime(conversation);
+            List<MessageVO> messageVOs = messages.stream()
+                    .map(this::convertToMessageVO)
+                    .collect(Collectors.toList());
+            vo.setMessages(messageVOs);
+        }
 
         return vo;
     }

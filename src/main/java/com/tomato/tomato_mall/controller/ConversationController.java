@@ -42,14 +42,14 @@ public class ConversationController {
     }
 
     @GetMapping("/{conversationId}")
-    public ResponseEntity<ResponseVO<ConversationVO>> getConversation(@PathVariable Long conversationId) {
+    public ResponseEntity<ResponseVO<ConversationVO>> getConversation(@PathVariable String conversationId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         ConversationVO conversation = conversationService.getConversation(username, conversationId);
         return ResponseEntity.ok(ResponseVO.success(conversation));
     }
 
     @DeleteMapping("/{conversationId}")
-    public ResponseEntity<ResponseVO<String>> deleteConversation(@PathVariable Long conversationId) {
+    public ResponseEntity<ResponseVO<String>> deleteConversation(@PathVariable String conversationId) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         conversationService.deleteConversation(username, conversationId);
         return ResponseEntity.ok(ResponseVO.success("删除成功"));
@@ -57,7 +57,7 @@ public class ConversationController {
 
     @PostMapping("/{conversationId}")
     public ResponseEntity<ResponseVO<MessageVO>> getMessage(
-            @PathVariable Long conversationId,
+            @PathVariable String conversationId,
             @RequestBody MessageCreateDTO messageDTO) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         MessageVO response = conversationService.getMessage(username, conversationId, messageDTO);
@@ -65,7 +65,7 @@ public class ConversationController {
     }
 
     @PostMapping(value = "/stream/{conversationId}", produces = "text/event-stream;charset=UTF-8")
-    public Flux<ServerSentEvent<String>> getStreamMessage(@PathVariable Long conversationId,
+    public Flux<ServerSentEvent<String>> getStreamMessage(@PathVariable String conversationId,
             @RequestBody MessageCreateDTO messageDTO) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return conversationService.getStreamMessage(username, conversationId, messageDTO)

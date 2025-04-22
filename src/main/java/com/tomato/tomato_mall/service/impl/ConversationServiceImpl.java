@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 
 import org.springframework.ai.chat.client.*;
 import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,16 +34,19 @@ public class ConversationServiceImpl implements ConversationService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ChatClient chatClient;
+    private final ChatMemory chatMemory;
 
     public ConversationServiceImpl(
             ConversationRepository conversationRepository,
             MessageRepository messageRepository,
             UserRepository userRepository,
-            ChatClient chatClient) {
+            ChatClient chatClient,
+            ChatMemory chatMemory) {
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
         this.chatClient = chatClient;
+        this.chatMemory = chatMemory;
     }
 
     @Override
@@ -52,7 +56,11 @@ public class ConversationServiceImpl implements ConversationService {
 
         List<Conversation> conversations = conversationRepository.findByUserOrderByUpdateTimeDesc(user);
         return conversations.stream()
-                .map(this::convertToConversationVO)
+                .map(conversation -> {
+                    ConversationVO conversationVO = convertToConversationVO(conversation);
+                    conversationVO.setMessages(null);
+                    return conversationVO;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -99,6 +107,8 @@ public class ConversationServiceImpl implements ConversationService {
             throw new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_BELONG_TO_USER);
         }
 
+        String conversationKey = "conversation-" + conversationId;
+        chatMemory.clear(conversationKey);
         conversationRepository.delete(conversation);
     }
 
@@ -127,11 +137,10 @@ public class ConversationServiceImpl implements ConversationService {
 
         try {
             String response = chatClient.prompt()
-                .user(messageDTO.getContent())
-                .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationKey))
-                .call()
-                .content();
-                
+                    .user(messageDTO.getContent())
+                    .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationKey))
+                    .call()
+                    .content();
 
             // 保存AI回复
             Message assistantMessage = new Message();
@@ -154,13 +163,13 @@ public class ConversationServiceImpl implements ConversationService {
     public Flux<String> getStreamMessage(String username, Long conversationId, MessageCreateDTO messageDTO) {
         // 验证用户和会话
         User user = userRepository.findByUsername(username)
-               .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
         Conversation conversation = conversationRepository.findById(conversationId)
-              .orElseThrow(() -> new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_FOUND));
         if (!conversation.getUser().getId().equals(user.getId())) {
             throw new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_BELONG_TO_USER);
         }
-    
+
         // 保存用户消息
         Message userMessage = new Message();
         userMessage.setConversation(conversation);
@@ -168,25 +177,25 @@ public class ConversationServiceImpl implements ConversationService {
         userMessage.setContent(messageDTO.getContent());
         userMessage = messageRepository.save(userMessage);
         String conversationKey = "conversation-" + conversationId;
-    
+
         // 创建AI回复消息对象，但先不保存内容
         Message assistantMessage = new Message();
         assistantMessage.setConversation(conversation);
         assistantMessage.setRole(Role.ASSISTANT);
         assistantMessage.setContent(""); // 初始为空
         assistantMessage = messageRepository.save(assistantMessage);
-        
+
         // 最终要保存的完整内容
         final StringBuilder completeResponse = new StringBuilder();
         final Long assistantMessageId = assistantMessage.getId();
-    
+
         // 获取流式回复并处理
         Flux<String> responseFlux = chatClient.prompt()
-             .user(messageDTO.getContent())
-             .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationKey))
-             .stream()
-             .content();
-             
+                .user(messageDTO.getContent())
+                .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationKey))
+                .stream()
+                .content();
+
         // 转换流，同时收集完整回复
         return responseFlux
                 .doOnNext(chunk -> {
@@ -198,7 +207,7 @@ public class ConversationServiceImpl implements ConversationService {
                     messageRepository.findById(assistantMessageId).ifPresent(msg -> {
                         msg.setContent(completeResponse.toString());
                         messageRepository.save(msg);
-                        
+
                         // 更新会话
                         conversationRepository.save(conversation);
                     });

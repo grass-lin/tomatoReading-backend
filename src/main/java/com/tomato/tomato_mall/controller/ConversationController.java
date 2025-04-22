@@ -7,7 +7,10 @@ import com.tomato.tomato_mall.vo.ConversationVO;
 import com.tomato.tomato_mall.vo.MessageVO;
 import com.tomato.tomato_mall.vo.ResponseVO;
 
+import reactor.core.publisher.Flux;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,11 +56,30 @@ public class ConversationController {
     }
 
     @PostMapping("/{conversationId}")
-    public ResponseEntity<ResponseVO<MessageVO>> sendMessage(
+    public ResponseEntity<ResponseVO<MessageVO>> getMessage(
             @PathVariable Long conversationId,
             @RequestBody MessageCreateDTO messageDTO) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        MessageVO response = conversationService.sendMessage(username, conversationId, messageDTO);
+        MessageVO response = conversationService.getMessage(username, conversationId, messageDTO);
         return ResponseEntity.ok(ResponseVO.success(response));
+    }
+
+    @PostMapping(value = "/stream/{conversationId}", produces = "text/event-stream;charset=UTF-8")
+    public Flux<ServerSentEvent<String>> getStreamMessage(@PathVariable Long conversationId,
+            @RequestBody MessageCreateDTO messageDTO) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return conversationService.getStreamMessage(username, conversationId, messageDTO)
+                .map(message -> ServerSentEvent.<String>builder()
+                        .id(String.valueOf(System.currentTimeMillis()))
+                        .event("message")
+                        .data(message)
+                        .build())
+                .onErrorResume(e -> {
+                    return Flux.just(ServerSentEvent.<String>builder()
+                            .id("error")
+                            .event("error")
+                            .data(e.getMessage())
+                            .build());
+                });
     }
 }

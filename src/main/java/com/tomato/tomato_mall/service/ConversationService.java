@@ -5,6 +5,8 @@ import com.tomato.tomato_mall.dto.MessageCreateDTO;
 import com.tomato.tomato_mall.vo.ConversationVO;
 import com.tomato.tomato_mall.vo.MessageVO;
 
+import reactor.core.publisher.Flux;
+
 import java.util.List;
 
 public interface ConversationService {
@@ -17,5 +19,7 @@ public interface ConversationService {
     
     void deleteConversation(String username, Long conversationId);
     
-    MessageVO sendMessage(String username, Long conversationId, MessageCreateDTO messageDTO);
+    MessageVO getMessage(String username, Long conversationId, MessageCreateDTO messageDTO);
+
+    Flux<String> getStreamMessage(String username, Long conversationId, MessageCreateDTO messageDTO);
 }

@@ -15,6 +15,8 @@ import com.tomato.tomato_mall.service.ConversationService;
 import com.tomato.tomato_mall.vo.ConversationVO;
 import com.tomato.tomato_mall.vo.MessageVO;
 
+import reactor.core.publisher.Flux;
+
 import org.springframework.ai.chat.client.*;
 import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
 import org.springframework.beans.BeanUtils;
@@ -102,7 +104,7 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     @Transactional
-    public MessageVO sendMessage(String username, Long conversationId, MessageCreateDTO messageDTO) {
+    public MessageVO getMessage(String username, Long conversationId, MessageCreateDTO messageDTO) {
         // 验证用户和会话
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
@@ -145,6 +147,62 @@ public class ConversationServiceImpl implements ConversationService {
         } catch (Exception e) {
             throw new BusinessException(ErrorTypeEnum.RESPONSE_FETCH_FAILED);
         }
+    }
+
+    @Override
+    @Transactional
+    public Flux<String> getStreamMessage(String username, Long conversationId, MessageCreateDTO messageDTO) {
+        // 验证用户和会话
+        User user = userRepository.findByUsername(username)
+               .orElseThrow(() -> new BusinessException(ErrorTypeEnum.USER_NOT_FOUND));
+        Conversation conversation = conversationRepository.findById(conversationId)
+              .orElseThrow(() -> new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_FOUND));
+        if (!conversation.getUser().getId().equals(user.getId())) {
+            throw new BusinessException(ErrorTypeEnum.CONVERSATION_NOT_BELONG_TO_USER);
+        }
+    
+        // 保存用户消息
+        Message userMessage = new Message();
+        userMessage.setConversation(conversation);
+        userMessage.setRole(Role.USER);
+        userMessage.setContent(messageDTO.getContent());
+        userMessage = messageRepository.save(userMessage);
+        String conversationKey = "conversation-" + conversationId;
+    
+        // 创建AI回复消息对象，但先不保存内容
+        Message assistantMessage = new Message();
+        assistantMessage.setConversation(conversation);
+        assistantMessage.setRole(Role.ASSISTANT);
+        assistantMessage.setContent(""); // 初始为空
+        assistantMessage = messageRepository.save(assistantMessage);
+        
+        // 最终要保存的完整内容
+        final StringBuilder completeResponse = new StringBuilder();
+        final Long assistantMessageId = assistantMessage.getId();
+    
+        // 获取流式回复并处理
+        Flux<String> responseFlux = chatClient.prompt()
+             .user(messageDTO.getContent())
+             .advisors(a -> a.param(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationKey))
+             .stream()
+             .content();
+             
+        // 转换流，同时收集完整回复
+        return responseFlux
+                .doOnNext(chunk -> {
+                    // 累积响应内容
+                    completeResponse.append(chunk);
+                })
+                .doOnComplete(() -> {
+                    // 流完成时，保存完整响应到数据库
+                    messageRepository.findById(assistantMessageId).ifPresent(msg -> {
+                        msg.setContent(completeResponse.toString());
+                        messageRepository.save(msg);
+                        
+                        // 更新会话
+                        conversationRepository.save(conversation);
+                    });
+                });
     }
 
     private ConversationVO convertToConversationVO(Conversation conversation) {

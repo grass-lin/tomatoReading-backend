@@ -80,10 +80,11 @@ public class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         // 添加JWT过滤器
         .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)
+        .securityContext(context -> context.requireExplicitSave(false))
         // 配置异常处理
         .exceptionHandling(exceptions -> exceptions
             .authenticationEntryPoint(jwtAuthenticationEntryPoint));
-
+    
     return http.build();
   }
 

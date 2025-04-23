@@ -1,5 +1,6 @@
 package com.tomato.tomato_mall.config;
 
+import com.tomato.tomato_mall.security.CustomUserDetailsService;
 import com.tomato.tomato_mall.security.JwtAuthenticationEntryPoint;
 import com.tomato.tomato_mall.security.JwtAuthenticationFilter;
 import com.tomato.tomato_mall.util.JwtUtils;
@@ -38,6 +39,7 @@ public class SecurityConfig {
 
   private final JwtUtils jwtUtils;
   private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+  private final CustomUserDetailsService customUserDetailsService;
 
   /**
    * 构造函数，通过依赖注入初始化安全组件
@@ -45,9 +47,13 @@ public class SecurityConfig {
    * @param jwtUtils                    JWT工具类，用于令牌的生成、验证和解析
    * @param jwtAuthenticationEntryPoint JWT认证入口点，处理未认证请求的响应
    */
-  public SecurityConfig(JwtUtils jwtUtils, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
+  public SecurityConfig(
+      JwtUtils jwtUtils,
+      JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+      CustomUserDetailsService customUserDetailsService) {
     this.jwtUtils = jwtUtils;
     this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+    this.customUserDetailsService = customUserDetailsService;
   }
 
   /**
@@ -73,7 +79,8 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(authorize -> authorize
             // 公开访问的端点
-            .requestMatchers("/api/accounts", "/api/accounts/login", "/api/oss/avatar", "/api/orders/notify").permitAll()
+            .requestMatchers("/api/accounts", "/api/accounts/login", "/api/oss/avatar", "/api/orders/notify")
+            .permitAll()
             // 所有其他请求需要认证
             .anyRequest().authenticated())
         // 不使用session
@@ -81,10 +88,11 @@ public class SecurityConfig {
         // 添加JWT过滤器
         .addFilterBefore(new JwtAuthenticationFilter(jwtUtils), UsernamePasswordAuthenticationFilter.class)
         .securityContext(context -> context.requireExplicitSave(false))
+        .userDetailsService(customUserDetailsService)
         // 配置异常处理
         .exceptionHandling(exceptions -> exceptions
             .authenticationEntryPoint(jwtAuthenticationEntryPoint));
-    
+
     return http.build();
   }
 

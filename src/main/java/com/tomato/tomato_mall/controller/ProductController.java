@@ -83,7 +83,6 @@ public class ProductController {
      * 
      * @param createDTO 商品创建数据传输对象，包含商品名称、价格、描述等信息
      * @return 返回包含新创建商品信息的响应体，状态码200
-     * @throws org.springframework.security.access.AccessDeniedException 当用户没有管理员权限时抛出
      */
     @PostMapping
     @PreAuthorize("hasRole('admin')")
@@ -95,6 +94,24 @@ public class ProductController {
     }
 
     /**
+     * 批量创建商品接口
+     * <p>
+     * 批量创建多个新的商品记录，需要管理员权限
+     * </p>
+     *
+     * @param createDTOs 商品创建数据传输对象列表，包含多个商品的信息
+     * @return 返回成功消息的响应体，状态码200
+     */
+    @PostMapping("/list")
+    @PreAuthorize("hasRole('admin')")
+    public ResponseEntity<ResponseVO<String>> createProducts(@Valid @RequestBody List<ProductCreateDTO> createDTOs) {
+        createDTOs.forEach(createDTO -> {
+            productService.createProduct(createDTO);
+        });
+        return ResponseEntity.ok(ResponseVO.success("Success"));
+    }
+
+    /**
      * 更新商品信息接口
      * <p>
      * 更新现有商品的信息，需要管理员权限
@@ -102,7 +119,6 @@ public class ProductController {
      * 
      * @param updateDTO 商品更新数据传输对象，包含需要更新的商品ID和信息
      * @return 返回成功消息的响应体，状态码200
-     * @throws org.springframework.security.access.AccessDeniedException 当用户没有管理员权限时抛出
      */
     @PutMapping
     @PreAuthorize("hasRole('admin')")
@@ -124,7 +140,6 @@ public class ProductController {
      * 
      * @param id 要删除的商品ID
      * @return 返回成功消息的响应体，状态码200
-     * @throws org.springframework.security.access.AccessDeniedException 当用户没有管理员权限时抛出
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('admin')")
@@ -157,8 +172,6 @@ public class ProductController {
      * @param productId 商品ID
      * @param stockpileUpdateDTO 库存更新数据传输对象，包含库存调整信息
      * @return 返回成功消息的响应体，状态码200
-     * @throws java.util.NoSuchElementException 当商品不存在时抛出
-     * @throws org.springframework.security.access.AccessDeniedException 当用户没有管理员权限时抛出
      */
     @PatchMapping("/stockpile/{productId}")
     @PreAuthorize("hasRole('admin')")

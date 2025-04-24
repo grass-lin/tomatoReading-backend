@@ -17,6 +17,7 @@ public class ProductDocumentConverter {
   public Document convertToDocument(Product product) {
     // 构建文档内容
     StringBuilder contentBuilder = new StringBuilder();
+    contentBuilder.append("书籍id: ").append(product.getId()).append("\n");
     contentBuilder.append("书名: ").append(product.getTitle()).append("\n");
     contentBuilder.append("价格: ").append(product.getPrice()).append("\n");
     contentBuilder.append("评分: ").append(product.getRate()).append("\n");

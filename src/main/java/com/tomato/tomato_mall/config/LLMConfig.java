@@ -3,7 +3,9 @@ package com.tomato.tomato_mall.config;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,10 +14,7 @@ import com.tomato.tomato_mall.tool.ProductTools;
 @Configuration
 public class LLMConfig {
     @Bean
-    public ChatClient chatClient(
-            ChatClient.Builder chatClientBuilder,
-            ChatMemory chatMemory,
-            ProductTools productTools) {
+    public ChatClient chatClient(ChatClient.Builder chatClientBuilder, ChatMemory chatMemory, ProductTools productTools, VectorStore vectorStore) {
         return chatClientBuilder
                 .defaultSystem("""
                         你是一个专业的在线实体书商城助手，名叫"番茄书城助手"，提供友好、准确的回复。
@@ -26,9 +25,10 @@ public class LLMConfig {
                         你可以使用工具来查询产品信息。
                         对于关于产品问题，请优先使用相应的工具来获取最新信息，而不是猜测。
                         涉及到图片的链接内容请不要添加到回复中。
+                        使用检索增强生成(RAG)回答问题时，基于检索到的内容提供准确的信息，避免编造。
                         """)
-                .defaultAdvisors(new MessageChatMemoryAdvisor(chatMemory), new SimpleLoggerAdvisor())
-                .defaultTools(productTools)
+                // .defaultTools(productTools)
+                .defaultAdvisors(new MessageChatMemoryAdvisor(chatMemory), new SimpleLoggerAdvisor(), new QuestionAnswerAdvisor(vectorStore))
                 .build();
     }
 }

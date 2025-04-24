@@ -24,7 +24,7 @@ public class ProductTools {
         this.stockpileService = stockpileService;
     }
 
-    @Tool(description = "获取书籍列表. 返回 <id,title> 键值对")
+    @Tool(description = "获取书籍列表. 返回 <书籍id,书名> 键值对")
     public Map<Long, String> getProductList() {
         List<ProductVO> products = productService.getAllProducts();
         return products.stream()
@@ -41,8 +41,12 @@ public class ProductTools {
     }
 
     @Tool(description = "获取指定库存信息")
-    public String getStockpileInfo(@ToolParam(description = "产品ID") Long productId) {
+    public String getStockpileInfo(@ToolParam(description = "书籍ID") Long productId) {
+        if (productId == null)
+            return "书籍ID不能为空";
         StockpileVO stockpileVO = stockpileService.getStockpileByProductId(productId);
+        if (stockpileVO == null)
+            return "库存信息不存在";
         return String.format("库存总数: %d, 冻结数量: %d", stockpileVO.getAmount(), stockpileVO.getFrozen());
     }
 }

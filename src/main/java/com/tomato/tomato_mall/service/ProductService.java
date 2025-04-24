@@ -20,7 +20,6 @@ import java.util.List;
  * @author Team CBDDL
  * @version 1.0
  * @see com.tomato.tomato_mall.repository.ProductRepository
- * @see com.tomato.tomato_mall.service.StockpileService
  */
 public interface ProductService {
 

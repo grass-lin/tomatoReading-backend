@@ -14,6 +14,7 @@ import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.repository.ProductRepository;
 import com.tomato.tomato_mall.repository.StockpileRepository;
+import com.tomato.tomato_mall.service.ProductIngestionService;
 import com.tomato.tomato_mall.service.ProductService;
 import com.tomato.tomato_mall.vo.ProductVO;
 import com.tomato.tomato_mall.vo.SpecificationVO;
@@ -43,11 +44,13 @@ public class ProductServiceImpl implements ProductService {
     private final CartRepository cartRepository;
     private final OrderItemRepository orderItemRepository;
     private final AdvertisementRepository advertisementRepository;
+    private final ProductIngestionService productIngestionService;
 
     /**
      * 构造函数，通过依赖注入初始化商品服务组件
      * 
      * @param productRepository       商品数据访问对象
+     * @param stockpileRepository     库存数据访问对象
      * @param cartRepository          购物车项数据访问对象
      * @param orderItemRepository     订单项数据访问对象
      * @param advertisementRepository 广告数据访问对象
@@ -57,12 +60,14 @@ public class ProductServiceImpl implements ProductService {
             StockpileRepository stockpileRepository,
             CartRepository cartRepository,
             OrderItemRepository orderItemRepository,
-            AdvertisementRepository advertisementRepository) {
+            AdvertisementRepository advertisementRepository,
+            ProductIngestionService productIngestionService) {
         this.productRepository = productRepository;
         this.stockpileRepository = stockpileRepository;
         this.cartRepository = cartRepository;
         this.orderItemRepository = orderItemRepository;
         this.advertisementRepository = advertisementRepository;
+        this.productIngestionService = productIngestionService;
     }
 
     @Override
@@ -88,6 +93,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStockpile(stockpile);
 
         Product savedProduct = productRepository.save(product);
+        productIngestionService.ingestProduct(savedProduct);
 
         return convertToProductVO(savedProduct);
     }
@@ -127,6 +133,7 @@ public class ProductServiceImpl implements ProductService {
         advertisementRepository.deleteAllByProduct(product);
 
         productRepository.delete(product);
+        productIngestionService.removeProduct(id);
     }
 
     @Override
@@ -171,6 +178,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product updateProduct = productRepository.save(product);
+        productIngestionService.updateProduct(updateProduct);
         return convertToProductVO(updateProduct);
     }
 

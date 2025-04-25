@@ -51,14 +51,16 @@ public interface ProductService {
     /**
      * 获取商品分页列表
      * <p>
-     * 检索系统中商品的记录，支持分页。
+     * 检索系统中商品的记录，支持分页和基于标题、简介、详细说明的多字段搜索
      * </p>
      *
-     * @param page 页码 (从0开始)
-     * @param size 每页大小
+     * @param page    页码 (从0开始)
+     * @param size    每页大小
+     * @param keyword 搜索关键词(可选)
+     * @param sort    排序字段(可选, 仅限 rate-asc, rate-desc)
      * @return 包含商品信息的分页视图对象列表
      */
-    Page<ProductVO> getProductsByPage(int page, int size);
+    Page<ProductVO> getProductsByPage(int page, int size, String keyword, String sort);
 
     /**
      * 根据ID获取商品

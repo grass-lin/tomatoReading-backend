@@ -2,6 +2,8 @@ package com.tomato.tomato_mall.repository;
 
 import com.tomato.tomato_mall.entity.Product;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -21,4 +23,25 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+  Page<Product> findByTitleContainingOrDescriptionContainingOrDetailContainingIgnoreCase(
+      String titleKeyword,
+      String descriptionKeyword,
+      String detailKeyword,
+      Pageable pageable);
+
+  Page<Product> findByTitleContainingOrDescriptionContainingOrDetailContainingIgnoreCaseOrderByRateDesc(
+      String titleKeyword,
+      String descriptionKeyword,
+      String detailKeyword,
+      Pageable pageable);
+
+  Page<Product> findByTitleContainingOrDescriptionContainingOrDetailContainingIgnoreCaseOrderByRateAsc(
+      String titleKeyword,
+      String descriptionKeyword,
+      String detailKeyword,
+      Pageable pageable);
+
+  Page<Product> findAllByOrderByRateDesc(Pageable pageable);
+
+  Page<Product> findAllByOrderByRateAsc(Pageable pageable);
 }

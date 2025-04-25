@@ -70,13 +70,17 @@ public class ProductController {
      *
      * @param page 页码 (从0开始, 默认为0)
      * @param size 每页大小 (默认为20, 最小为1)
+     * @param keyword 搜索关键词 (可选)
+     * @param sort 排序字段 (可选)
      * @return 返回包含商品分页列表的响应体，状态码200
      */
     @GetMapping("/page")
     public ResponseEntity<ResponseVO<Page<ProductVO>>> getProductsByPage(
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "20") @Min(1) int size) {
-        Page<ProductVO> productsPage = productService.getProductsByPage(page, size);
+            @RequestParam(defaultValue = "20") @Min(1) int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String sort) {
+        Page<ProductVO> productsPage = productService.getProductsByPage(page, size, keyword, sort);
         return ResponseEntity.ok(ResponseVO.success(productsPage));
     }
 

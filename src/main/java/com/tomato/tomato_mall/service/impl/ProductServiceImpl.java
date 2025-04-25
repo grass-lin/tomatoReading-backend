@@ -198,12 +198,20 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductVO> getProductsByPage(int page, int size) {
+    public Page<ProductVO> getProductsByPage(int page, int size, String keyword, String sort) {
         int validSize = size > 0 ? size : 20;
         int validPage = Math.max(page, 0);
 
         Pageable pageable = PageRequest.of(validPage, validSize);
-        Page<Product> productPage = productRepository.findAll(pageable);
+        Page<Product> productPage;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String searchKeyword = keyword.trim();
+            productPage = getSortedProductPage(searchKeyword, pageable, sort);
+        } else {
+            productPage = getSortedAllProductPage(pageable, sort);
+        }
+
         return productPage.map(this::convertToProductVO);
     }
 
@@ -212,6 +220,31 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
         return convertToProductVO(product);
+    }
+
+    private Page<Product> getSortedProductPage(String keyword, Pageable pageable, String sort) {
+        if ("rate-desc".equals(sort)) {
+            return productRepository
+                    .findByTitleContainingOrDescriptionContainingOrDetailContainingIgnoreCaseOrderByRateDesc(
+                            keyword, keyword, keyword, pageable);
+        } else if ("rate-asc".equals(sort)) {
+            return productRepository
+                    .findByTitleContainingOrDescriptionContainingOrDetailContainingIgnoreCaseOrderByRateAsc(
+                            keyword, keyword, keyword, pageable);
+        } else {
+            return productRepository.findByTitleContainingOrDescriptionContainingOrDetailContainingIgnoreCase(
+                    keyword, keyword, keyword, pageable);
+        }
+    }
+
+    private Page<Product> getSortedAllProductPage(Pageable pageable, String sort) {
+        if ("rate-desc".equals(sort)) {
+            return productRepository.findAllByOrderByRateDesc(pageable);
+        } else if ("rate-asc".equals(sort)) {
+            return productRepository.findAllByOrderByRateAsc(pageable);
+        } else {
+            return productRepository.findAll(pageable);
+        }
     }
 
     /**

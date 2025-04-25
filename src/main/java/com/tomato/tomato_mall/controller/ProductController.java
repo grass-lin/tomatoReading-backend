@@ -9,7 +9,9 @@ import com.tomato.tomato_mall.vo.ProductVO;
 import com.tomato.tomato_mall.vo.ResponseVO;
 import com.tomato.tomato_mall.vo.StockpileVO;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 
+import org.springframework.data.domain.Page;
 // import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -61,6 +63,24 @@ public class ProductController {
     }
 
     /**
+     * 获取商品分页列表接口
+     * <p>
+     * 返回系统中商品的列表，支持分页
+     * </p>
+     *
+     * @param page 页码 (从0开始, 默认为0)
+     * @param size 每页大小 (默认为20, 最小为1)
+     * @return 返回包含商品分页列表的响应体，状态码200
+     */
+    @GetMapping("/page")
+    public ResponseEntity<ResponseVO<Page<ProductVO>>> getProductsByPage(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) int size) {
+        Page<ProductVO> productsPage = productService.getProductsByPage(page, size);
+        return ResponseEntity.ok(ResponseVO.success(productsPage));
+    }
+
+    /**
      * 根据ID获取商品详情接口
      * <p>
      * 返回指定ID的商品详细信息
@@ -91,24 +111,6 @@ public class ProductController {
         // Bad practice
         return ResponseEntity.ok(ResponseVO.success(newProduct));
         // return ResponseEntity.status(HttpStatus.CREATED).body(ResponseVO.success(newProduct));
-    }
-
-    /**
-     * 批量创建商品接口
-     * <p>
-     * 批量创建多个新的商品记录，需要管理员权限
-     * </p>
-     *
-     * @param createDTOs 商品创建数据传输对象列表，包含多个商品的信息
-     * @return 返回成功消息的响应体，状态码200
-     */
-    @PostMapping("/list")
-    @PreAuthorize("hasRole('admin')")
-    public ResponseEntity<ResponseVO<String>> createProducts(@Valid @RequestBody List<ProductCreateDTO> createDTOs) {
-        createDTOs.forEach(createDTO -> {
-            productService.createProduct(createDTO);
-        });
-        return ResponseEntity.ok(ResponseVO.success("Success"));
     }
 
     /**

@@ -6,6 +6,8 @@ import com.tomato.tomato_mall.vo.ProductVO;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+
 /**
  * 商品服务接口
  * <p>
@@ -45,6 +47,18 @@ public interface ProductService {
      * @return 包含所有商品信息的视图对象列表
      */
     List<ProductVO> getAllProducts();
+
+    /**
+     * 获取商品分页列表
+     * <p>
+     * 检索系统中商品的记录，支持分页。
+     * </p>
+     *
+     * @param page 页码 (从0开始)
+     * @param size 每页大小
+     * @return 包含商品信息的分页视图对象列表
+     */
+    Page<ProductVO> getProductsByPage(int page, int size);
 
     /**
      * 根据ID获取商品

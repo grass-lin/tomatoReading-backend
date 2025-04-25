@@ -20,6 +20,9 @@ import com.tomato.tomato_mall.vo.ProductVO;
 import com.tomato.tomato_mall.vo.SpecificationVO;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,7 +79,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = new Product();
         BeanUtils.copyProperties(createDTO, product);
 
-        if(createDTO.getDetail() != null && createDTO.getDetail().length()> 500) {
+        if (createDTO.getDetail() != null && createDTO.getDetail().length() > 500) {
             product.setDetail(createDTO.getDetail().substring(0, 490));
         }
 
@@ -97,7 +100,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStockpile(stockpile);
 
         Product savedProduct = productRepository.save(product);
-        productIngestionService.ingestProduct(savedProduct);
+        // productIngestionService.ingestProduct(savedProduct);
 
         return convertToProductVO(savedProduct);
     }
@@ -137,7 +140,7 @@ public class ProductServiceImpl implements ProductService {
         advertisementRepository.deleteAllByProduct(product);
 
         productRepository.delete(product);
-        productIngestionService.removeProduct(id);
+        // productIngestionService.removeProduct(id);
     }
 
     @Override
@@ -182,7 +185,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product updateProduct = productRepository.save(product);
-        productIngestionService.updateProduct(updateProduct);
+        // productIngestionService.updateProduct(updateProduct);
         return convertToProductVO(updateProduct);
     }
 
@@ -192,6 +195,16 @@ public class ProductServiceImpl implements ProductService {
         return products.stream()
                 .map(this::convertToProductVO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<ProductVO> getProductsByPage(int page, int size) {
+        int validSize = size > 0 ? size : 20;
+        int validPage = Math.max(page, 0);
+
+        Pageable pageable = PageRequest.of(validPage, validSize);
+        Page<Product> productPage = productRepository.findAll(pageable);
+        return productPage.map(this::convertToProductVO);
     }
 
     @Override

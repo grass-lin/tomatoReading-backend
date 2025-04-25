@@ -76,6 +76,10 @@ public class ProductServiceImpl implements ProductService {
         Product product = new Product();
         BeanUtils.copyProperties(createDTO, product);
 
+        if(createDTO.getDetail() != null && createDTO.getDetail().length()> 500) {
+            product.setDetail(createDTO.getDetail().substring(0, 490));
+        }
+
         if (createDTO.getSpecifications() != null) {
             List<Specification> specifications = createDTO.getSpecifications().stream()
                     .map(specDTO -> {

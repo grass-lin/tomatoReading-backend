@@ -87,7 +87,7 @@ public class ProductCreateDTO {
      * 最大长度为500个字符。
      * </p>
      */
-    @Size(max = 500, message = "Product detail cannot exceed 500 characters")
+    // @Size(max = 500, message = "Product detail cannot exceed 500 characters")
     private String detail;
 
     /**

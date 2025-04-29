@@ -15,6 +15,7 @@ import com.tomato.tomato_mall.exception.BusinessException;
 import com.tomato.tomato_mall.repository.ProductRepository;
 import com.tomato.tomato_mall.repository.StockpileRepository;
 import com.tomato.tomato_mall.service.ProductService;
+import com.tomato.tomato_mall.util.VectorStoreUtil;
 import com.tomato.tomato_mall.vo.ProductVO;
 import com.tomato.tomato_mall.vo.SpecificationVO;
 
@@ -46,6 +47,7 @@ public class ProductServiceImpl implements ProductService {
     private final CartRepository cartRepository;
     private final OrderItemRepository orderItemRepository;
     private final AdvertisementRepository advertisementRepository;
+    private final VectorStoreUtil vectorStoreUtil;
 
     /**
      * 构造函数，通过依赖注入初始化商品服务组件
@@ -55,18 +57,21 @@ public class ProductServiceImpl implements ProductService {
      * @param cartRepository          购物车项数据访问对象
      * @param orderItemRepository     订单项数据访问对象
      * @param advertisementRepository 广告数据访问对象
+     * @param vectorStoreUtil         向量存储工具
      */
     public ProductServiceImpl(
             ProductRepository productRepository,
             StockpileRepository stockpileRepository,
             CartRepository cartRepository,
             OrderItemRepository orderItemRepository,
-            AdvertisementRepository advertisementRepository) {
+            AdvertisementRepository advertisementRepository,
+            VectorStoreUtil vectorStoreUtil) {
         this.productRepository = productRepository;
         this.stockpileRepository = stockpileRepository;
         this.cartRepository = cartRepository;
         this.orderItemRepository = orderItemRepository;
         this.advertisementRepository = advertisementRepository;
+        this.vectorStoreUtil = vectorStoreUtil;
     }
 
     @Override
@@ -96,6 +101,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStockpile(stockpile);
 
         Product savedProduct = productRepository.save(product);
+        vectorStoreUtil.addProductVector(savedProduct);
 
         return convertToProductVO(savedProduct);
     }
@@ -135,6 +141,7 @@ public class ProductServiceImpl implements ProductService {
         advertisementRepository.deleteAllByProduct(product);
 
         productRepository.delete(product);
+        vectorStoreUtil.removeProductVector(id);
     }
 
     @Override
@@ -179,6 +186,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product updateProduct = productRepository.save(product);
+        vectorStoreUtil.updateProductVector(updateProduct);
         return convertToProductVO(updateProduct);
     }
 

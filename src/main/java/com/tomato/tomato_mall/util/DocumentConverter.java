@@ -6,21 +6,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.document.Document;
-import org.springframework.stereotype.Component;
 
 import com.tomato.tomato_mall.entity.Product;
 import com.tomato.tomato_mall.entity.Specification;
 
-@Component
-public class ProductDocumentConverter {
+public class DocumentConverter {
 
-  public Document convertToDocument(Product product) {
+  public static Document convertToDocument(Product product) {
     // 构建文档内容
     StringBuilder contentBuilder = new StringBuilder();
     contentBuilder.append("书籍id: ").append(product.getId()).append("\n");
     contentBuilder.append("书名: ").append(product.getTitle()).append("\n");
-    contentBuilder.append("价格: ").append(product.getPrice()).append("\n");
-    contentBuilder.append("评分: ").append(product.getRate()).append("\n");
     if (product.getDescription() != null && !product.getDescription().isEmpty()) {
       contentBuilder.append("简介: ").append(product.getDescription()).append("\n");
     }
@@ -44,9 +40,9 @@ public class ProductDocumentConverter {
     return new Document(contentBuilder.toString(), metadata);
   }
 
-  public List<Document> convertToDocuments(List<Product> products) {
+  public static List<Document> convertToDocuments(List<Product> products) {
     return products.stream()
-        .map(this::convertToDocument)
+        .map(DocumentConverter::convertToDocument)
         .collect(Collectors.toList());
   }
 }

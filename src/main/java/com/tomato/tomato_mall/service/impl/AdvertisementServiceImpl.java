@@ -30,118 +30,118 @@ import java.util.stream.Collectors;
 @Service
 public class AdvertisementServiceImpl implements AdvertisementService {
 
-    private final AdvertisementRepository advertisementRepository;
-    private final ProductRepository productRepository;
+  private final AdvertisementRepository advertisementRepository;
+  private final ProductRepository productRepository;
 
-    /**
-     * 构造函数，通过依赖注入初始化广告服务组件
-     * 
-     * @param advertisementRepository 广告数据访问对象
-     * @param productRepository 商品数据访问对象
-     */
-    public AdvertisementServiceImpl(
-            AdvertisementRepository advertisementRepository,
-            ProductRepository productRepository) {
-        this.advertisementRepository = advertisementRepository;
-        this.productRepository = productRepository;
+  /**
+   * 构造函数，通过依赖注入初始化广告服务组件
+   * 
+   * @param advertisementRepository 广告数据访问对象
+   * @param productRepository       商品数据访问对象
+   */
+  public AdvertisementServiceImpl(
+      AdvertisementRepository advertisementRepository,
+      ProductRepository productRepository) {
+    this.advertisementRepository = advertisementRepository;
+    this.productRepository = productRepository;
+  }
+
+  @Override
+  public List<AdvertisementVO> getAllAdvertisements() {
+    List<Advertisement> advertisements = advertisementRepository.findAll();
+    return advertisements.stream()
+        .map(this::convertToAdvertisementVO)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public AdvertisementVO getAdvertisementById(Long id) {
+    Advertisement advertisement = advertisementRepository.findById(id)
+        .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ADVERTISEMENT_NOT_FOUND));
+
+    return convertToAdvertisementVO(advertisement);
+  }
+
+  @Override
+  @Transactional
+  public AdvertisementVO createAdvertisement(AdvertisementCreateDTO createDTO) {
+    // 检查关联商品是否存在
+    Product product = productRepository.findById(createDTO.getProductId())
+        .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
+
+    Advertisement advertisement = new Advertisement();
+    BeanUtils.copyProperties(createDTO, advertisement);
+    advertisement.setImageUrl(createDTO.getImgUrl());
+    advertisement.setProduct(product);
+
+    Advertisement savedAdvertisement = advertisementRepository.save(advertisement);
+
+    return convertToAdvertisementVO(savedAdvertisement);
+  }
+
+  @Override
+  @Transactional
+  public AdvertisementVO updateAdvertisement(AdvertisementUpdateDTO updateDTO) {
+    Advertisement advertisement = advertisementRepository.findById(updateDTO.getId())
+        .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ADVERTISEMENT_NOT_FOUND));
+
+    // 如果更新了关联商品，需要验证商品是否存在
+    if (updateDTO.getProductId() != null) {
+      Product product = productRepository.findById(updateDTO.getProductId())
+          .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
+      advertisement.setProduct(product);
     }
 
-    @Override
-    public List<AdvertisementVO> getAllAdvertisements() {
-        List<Advertisement> advertisements = advertisementRepository.findAll();
-        return advertisements.stream()
-                .map(this::convertToAdvertisementVO)
-                .collect(Collectors.toList());
+    // Bad Practice: 更新非空字段
+    if (updateDTO.getTitle() != null) {
+      advertisement.setTitle(updateDTO.getTitle());
     }
 
-    @Override
-    public AdvertisementVO getAdvertisementById(Long id) {
-        Advertisement advertisement = advertisementRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ADVERTISEMENT_NOT_FOUND));
-
-        return convertToAdvertisementVO(advertisement);
+    if (updateDTO.getContent() != null) {
+      advertisement.setContent(updateDTO.getContent());
     }
 
-    @Override
-    @Transactional
-    public AdvertisementVO createAdvertisement(AdvertisementCreateDTO createDTO) {
-        // 检查关联商品是否存在
-        Product product = productRepository.findById(createDTO.getProductId())
-                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
-        
-        Advertisement advertisement = new Advertisement();
-        BeanUtils.copyProperties(createDTO, advertisement);
-        advertisement.setImageUrl(createDTO.getImgUrl());
-        advertisement.setProduct(product);
-        
-        Advertisement savedAdvertisement = advertisementRepository.save(advertisement);
-        
-        return convertToAdvertisementVO(savedAdvertisement);
+    if (updateDTO.getImgUrl() != null) {
+      advertisement.setImageUrl(updateDTO.getImgUrl());
     }
 
-    @Override
-    @Transactional
-    public AdvertisementVO updateAdvertisement(AdvertisementUpdateDTO updateDTO) {
-        Advertisement advertisement = advertisementRepository.findById(updateDTO.getId())
-                .orElseThrow(() -> new BusinessException(ErrorTypeEnum.ADVERTISEMENT_NOT_FOUND));
-        
-        // 如果更新了关联商品，需要验证商品是否存在
-        if (updateDTO.getProductId() != null) {
-            Product product = productRepository.findById(updateDTO.getProductId())
-                    .orElseThrow(() -> new BusinessException(ErrorTypeEnum.PRODUCT_NOT_FOUND));
-            advertisement.setProduct(product);
-        }
-        
-        // Bad Practice: 更新非空字段
-        if (updateDTO.getTitle() != null) {
-            advertisement.setTitle(updateDTO.getTitle());
-        }
-        
-        if (updateDTO.getContent() != null) {
-            advertisement.setContent(updateDTO.getContent());
-        }
-        
-        if (updateDTO.getImgUrl() != null) {
-            advertisement.setImageUrl(updateDTO.getImgUrl());
-        }
-        
-        Advertisement updatedAdvertisement = advertisementRepository.save(advertisement);
-        
-        return convertToAdvertisementVO(updatedAdvertisement);
+    Advertisement updatedAdvertisement = advertisementRepository.save(advertisement);
+
+    return convertToAdvertisementVO(updatedAdvertisement);
+  }
+
+  @Override
+  @Transactional
+  public void deleteAdvertisement(Long id) {
+    if (!advertisementRepository.existsById(id)) {
+      throw new BusinessException(ErrorTypeEnum.ADVERTISEMENT_NOT_FOUND);
     }
 
-    @Override
-    @Transactional
-    public void deleteAdvertisement(Long id) {
-        if (!advertisementRepository.existsById(id)) {
-            throw new BusinessException(ErrorTypeEnum.ADVERTISEMENT_NOT_FOUND);
-        }
-        
-        advertisementRepository.deleteById(id);
+    advertisementRepository.deleteById(id);
+  }
+
+  /**
+   * 将广告实体转换为视图对象
+   * <p>
+   * 封装广告实体到前端展示层所需的数据结构，
+   * 同时转换关联的商品信息。此方法负责数据模型层到展示层的转换，
+   * 确保实体内部结构不直接暴露给外部。
+   * </p>
+   * 
+   * @param advertisement 要转换的广告实体
+   * @return 转换后的广告视图对象
+   */
+  private AdvertisementVO convertToAdvertisementVO(Advertisement advertisement) {
+    AdvertisementVO advertisementVO = new AdvertisementVO();
+    BeanUtils.copyProperties(advertisement, advertisementVO);
+    // advertisementVO.setId(advertisement.getId().toString());
+    advertisementVO.setImgUrl(advertisement.getImageUrl());
+
+    // 设置商品相关信息
+    if (advertisement.getProduct() != null) {
+      advertisementVO.setProductId(advertisement.getProduct().getId());
     }
 
-    /**
-     * 将广告实体转换为视图对象
-     * <p>
-     * 封装广告实体到前端展示层所需的数据结构，
-     * 同时转换关联的商品信息。此方法负责数据模型层到展示层的转换，
-     * 确保实体内部结构不直接暴露给外部。
-     * </p>
-     * 
-     * @param advertisement 要转换的广告实体
-     * @return 转换后的广告视图对象
-     */
-    private AdvertisementVO convertToAdvertisementVO(Advertisement advertisement) {
-        AdvertisementVO advertisementVO = new AdvertisementVO();
-        BeanUtils.copyProperties(advertisement, advertisementVO);
-        // advertisementVO.setId(advertisement.getId().toString());
-        advertisementVO.setImgUrl(advertisement.getImageUrl());
-        
-        // 设置商品相关信息
-        if (advertisement.getProduct() != null) {
-            advertisementVO.setProductId(advertisement.getProduct().getId());
-        }
-        
-        return advertisementVO;
-    }
+    return advertisementVO;
+  }
 }

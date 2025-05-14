@@ -23,7 +23,7 @@ public class LLMConfig {
             你可以使用工具来查询产品信息。
             对于关于产品问题，请优先使用相应的工具来获取最新信息，而不是猜测。
             请关注用户对话中的上下文指代, 例如“这本书, 第几本书”, 优先结合历史对话, 从上下文确定具体所指书籍。
-            同时注意, 不要在回答中夹杂url链接或者图片引用, 不要使用markdown标记语法.
+            同时注意, 不要在回答中夹杂url链接或者图片引用.
             """)
         .defaultTools(productTools)
         .defaultAdvisors(new MessageChatMemoryAdvisor(chatMemory))

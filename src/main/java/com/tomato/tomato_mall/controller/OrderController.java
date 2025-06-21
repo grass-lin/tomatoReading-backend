@@ -38,128 +38,126 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/orders")
 public class OrderController {
 
-    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
-    private final OrderService orderService;
+  private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
+  private final OrderService orderService;
 
-    /**
-     * 构造函数，通过依赖注入初始化订单服务
-     * 
-     * @param orderService 订单服务，处理订单相关业务逻辑
-     */
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
+  /**
+   * 构造函数，通过依赖注入初始化订单服务
+   * 
+   * @param orderService 订单服务，处理订单相关业务逻辑
+   */
+  public OrderController(OrderService orderService) {
+    this.orderService = orderService;
+  }
+
+  /**
+   * 发起支付接口
+   * 支付流程的第二步
+   * </p>
+   * 
+   * @param orderId 订单ID
+   * @return 返回包含支付表单和订单信息的响应体，状态码200
+   * @throws java.util.NoSuchElementException 当订单不存在时抛出
+   * @throws IllegalStateException            当订单状态不允许支付时抛出
+   */
+  @PostMapping("/{orderId}/pay")
+  public ResponseEntity<ResponseVO<PaymentVO>> initiatePayment(@PathVariable String orderId) {
+    PaymentVO paymentVO = orderService.initiatePayment(orderId);
+    return ResponseEntity.ok(ResponseVO.success(paymentVO));
+  }
+
+  /**
+   * 支付回调处理接口
+   * <p>
+   * 处理支付平台的异步通知，验证支付结果，更新订单状态和库存
+   * 支付流程的第三步
+   * </p>
+   * 
+   * @param request  HTTP请求对象，包含支付平台回调参数
+   * @param response HTTP响应对象，用于向支付平台返回处理结果
+   * @throws IOException 当写入响应时发生IO异常时抛出
+   */
+  @PostMapping("/notify")
+  public void handlePaymentCallback(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    try {
+      Map<String, String> params = new HashMap<>();
+      Map<String, String[]> requestParams = request.getParameterMap();
+      for (String key : requestParams.keySet()) {
+        params.put(key, requestParams.get(key)[0]);
+      }
+
+      PaymentCallbackDTO callbackDTO = new PaymentCallbackDTO(params);
+      boolean success = orderService.handlePaymentCallback(callbackDTO);
+      response.getWriter().print(success ? "success" : "fail");
+    } catch (Exception e) {
+      logger.error("Error processing payment callback", e);
+      response.getWriter().print("fail");
     }
+  }
 
-    /**
-     * 发起支付接口
-     * <p>
-     * 根据订单ID生成支付表单，供前端调用第三方支付平台
-     * 支付流程的第二步
-     * </p>
-     * 
-     * @param orderId 订单ID
-     * @return 返回包含支付表单和订单信息的响应体，状态码200
-     * @throws java.util.NoSuchElementException 当订单不存在时抛出
-     * @throws IllegalStateException            当订单状态不允许支付时抛出
-     */
-    @PostMapping("/{orderId}/pay")
-    public ResponseEntity<ResponseVO<PaymentVO>> initiatePayment(@PathVariable String orderId) {
-        PaymentVO paymentVO = orderService.initiatePayment(orderId);
-        return ResponseEntity.ok(ResponseVO.success(paymentVO));
-    }
+  /**
+   * 获取当前用户所有订单接口
+   * <p>
+   * 返回当前认证用户的所有订单列表
+   * </p>
+   *
+   * @return 返回包含订单列表的响应体，状态码200
+   * @throws java.util.NoSuchElementException 当用户不存在时抛出
+   */
+  @GetMapping
+  public ResponseEntity<ResponseVO<List<OrderVO>>> getOrders() {
+    String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    List<OrderVO> orders = orderService.getOrdersByUsername(username);
+    return ResponseEntity.ok(ResponseVO.success(orders));
+  }
 
-    /**
-     * 支付回调处理接口
-     * <p>
-     * 处理支付平台的异步通知，验证支付结果，更新订单状态和库存
-     * 支付流程的第三步
-     * </p>
-     * 
-     * @param request  HTTP请求对象，包含支付平台回调参数
-     * @param response HTTP响应对象，用于向支付平台返回处理结果
-     * @throws IOException 当写入响应时发生IO异常时抛出
-     */
-    @PostMapping("/notify")
-    public void handlePaymentCallback(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            Map<String, String> params = new HashMap<>();
-            Map<String, String[]> requestParams = request.getParameterMap();
-            for (String key : requestParams.keySet()) {
-                params.put(key, requestParams.get(key)[0]);
-            }
+  /**
+   * 获取订单详情接口
+   * <p>
+   * 根据订单ID查询订单的详细信息
+   * </p>
+   * 
+   * @param orderId 订单ID
+   * @return 返回包含订单详情的响应体，状态码200
+   * @throws java.util.NoSuchElementException 当订单不存在时抛出
+   */
+  @GetMapping("/{orderId}")
+  public ResponseEntity<ResponseVO<OrderDetailVO>> getOrderDetail(@PathVariable String orderId) {
+    OrderDetailVO orderDetailVO = orderService.getOrderById(orderId);
+    return ResponseEntity.ok(ResponseVO.success(orderDetailVO));
+  }
 
-            PaymentCallbackDTO callbackDTO = new PaymentCallbackDTO(params);
-            boolean success = orderService.handlePaymentCallback(callbackDTO);
-            response.getWriter().print(success ? "success" : "fail");
-        } catch (Exception e) {
-            logger.error("Error processing payment callback", e);
-            response.getWriter().print("fail");
-        }
-    }
+  /**
+   * 取消订单接口
+   * <p>
+   * 允许用户取消未支付或未完成的订单，根据提供的取消信息处理订单取消逻辑
+   * </p>
+   * 
+   * @param cancelOrderDTO 订单取消数据传输对象，包含订单ID和取消原因
+   * @return 返回包含已取消订单详情的响应体，状态码200
+   * @throws java.util.NoSuchElementException 当订单不存在时抛出
+   * @throws IllegalStateException            当订单状态不允许取消时抛出
+   */
+  @DeleteMapping
+  public ResponseEntity<ResponseVO<OrderDetailVO>> cancelOrder(@Valid @RequestBody CancelOrderDTO cancelOrderDTO) {
+    String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    OrderDetailVO orderDetailVO = orderService.cancelOrder(username, cancelOrderDTO);
+    return ResponseEntity.ok(ResponseVO.success(orderDetailVO));
+  }
 
-    /**
-     * 获取当前用户所有订单接口
-     * <p>
-     * 返回当前认证用户的所有订单列表
-     * </p>
-     *
-     * @return 返回包含订单列表的响应体，状态码200
-     * @throws java.util.NoSuchElementException 当用户不存在时抛出
-     */
-    @GetMapping
-    public ResponseEntity<ResponseVO<List<OrderVO>>> getOrders() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        List<OrderVO> orders = orderService.getOrdersByUsername(username);
-        return ResponseEntity.ok(ResponseVO.success(orders));
-    }
-
-    /**
-     * 获取订单详情接口
-     * <p>
-     * 根据订单ID查询订单的详细信息
-     * </p>
-     * 
-     * @param orderId 订单ID
-     * @return 返回包含订单详情的响应体，状态码200
-     * @throws java.util.NoSuchElementException 当订单不存在时抛出
-     */
-    @GetMapping("/{orderId}")
-    public ResponseEntity<ResponseVO<OrderDetailVO>> getOrderDetail(@PathVariable String orderId) {
-        OrderDetailVO orderDetailVO = orderService.getOrderById(orderId);
-        return ResponseEntity.ok(ResponseVO.success(orderDetailVO));
-    }
-
-    /**
-     * 取消订单接口
-     * <p>
-     * 允许用户取消未支付或未完成的订单，根据提供的取消信息处理订单取消逻辑
-     * </p>
-     * 
-     * @param cancelOrderDTO 订单取消数据传输对象，包含订单ID和取消原因
-     * @return 返回包含已取消订单详情的响应体，状态码200
-     * @throws java.util.NoSuchElementException 当订单不存在时抛出
-     * @throws IllegalStateException            当订单状态不允许取消时抛出
-     */
-    @DeleteMapping
-    public ResponseEntity<ResponseVO<OrderDetailVO>> cancelOrder(@Valid @RequestBody CancelOrderDTO cancelOrderDTO) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        OrderDetailVO orderDetailVO = orderService.cancelOrder(username, cancelOrderDTO);
-        return ResponseEntity.ok(ResponseVO.success(orderDetailVO));
-    }
-
-    /**
-     * 确认收货接口
-     * <p>
-     * 用户确认收到指定订单项的商品，将订单项状态更新为已完成
-     * </p>
-     *
-     * @param orderItemId 订单项ID
-     * @return 返回包含更新后订单项信息的响应体，状态码200
-     */
-    @PatchMapping("/receive/{orderItemId}")
-    public ResponseEntity<ResponseVO<OrderItemVO>> confirmReceive(@PathVariable Long orderItemId) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        OrderItemVO orderItemVO = orderService.confirmReceive(username, orderItemId);
-        return ResponseEntity.ok(ResponseVO.success(orderItemVO));
-    }
+  /**
+   * 确认收货接口
+   * <p>
+   * 用户确认收到指定订单项的商品，将订单项状态更新为已完成
+   * </p>
+   *
+   * @param orderItemId 订单项ID
+   * @return 返回包含更新后订单项信息的响应体，状态码200
+   */
+  @PatchMapping("/receive/{orderItemId}")
+  public ResponseEntity<ResponseVO<OrderItemVO>> confirmReceive(@PathVariable Long orderItemId) {
+    String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    OrderItemVO orderItemVO = orderService.confirmReceive(username, orderItemId);
+    return ResponseEntity.ok(ResponseVO.success(orderItemVO));
+  }
 }

@@ -17,16 +17,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AlipayConfig {
 
-    private final AlipayProperties alipayProperties;
+  private final AlipayProperties alipayProperties;
 
-    /**
-     * 构造函数依赖注入
-     * 
-     * @param alipayProperties 支付宝配置属性
-     */
-    public AlipayConfig(AlipayProperties alipayProperties) {
-        this.alipayProperties = alipayProperties;
-    }
+  /**
+   * 构造函数依赖注入
+   * 
+   * @param alipayProperties 支付宝配置属性
+   */
+  public AlipayConfig(AlipayProperties alipayProperties) {
+    this.alipayProperties = alipayProperties;
+  }
 
     /**
      * 创建支付宝客户端实例

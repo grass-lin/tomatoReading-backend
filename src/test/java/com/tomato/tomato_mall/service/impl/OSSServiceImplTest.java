@@ -1,7 +1,7 @@
 package com.tomato.tomato_mall.service.impl;
 
-import com.tomato.tomato_mall.config.OSSProperties;
-import com.tomato.tomato_mall.config.STSProperties;
+import com.tomato.tomato_mall.properties.OSSProperties;
+import com.tomato.tomato_mall.properties.STSProperties;
 import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 import com.tomato.tomato_mall.enums.OSSFileTypeEnum;
 import com.tomato.tomato_mall.exception.BusinessException;

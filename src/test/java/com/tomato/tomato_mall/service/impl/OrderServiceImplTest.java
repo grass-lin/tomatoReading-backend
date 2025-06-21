@@ -3,7 +3,7 @@ package com.tomato.tomato_mall.service.impl;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
-import com.tomato.tomato_mall.config.AlipayProperties;
+import com.tomato.tomato_mall.properties.AlipayProperties;
 import com.tomato.tomato_mall.dto.CheckoutDTO;
 import com.tomato.tomato_mall.dto.CancelOrderDTO;
 import com.tomato.tomato_mall.dto.ShippingAddressDTO;

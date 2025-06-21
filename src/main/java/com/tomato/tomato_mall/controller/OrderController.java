@@ -96,7 +96,6 @@ public class OrderController {
    * </p>
    *
    * @return 返回包含订单列表的响应体，状态码200
-   * @throws java.util.NoSuchElementException 当用户不存在时抛出
    */
   @GetMapping
   public ResponseEntity<ResponseVO<List<OrderVO>>> getOrders() {
@@ -128,7 +127,6 @@ public class OrderController {
    * 
    * @param orderId 订单ID
    * @return 返回包含订单详情的响应体，状态码200
-   * @throws java.util.NoSuchElementException 当订单不存在时抛出
    */
   @GetMapping("/{orderId}")
   public ResponseEntity<ResponseVO<OrderDetailVO>> getOrderDetail(@PathVariable String orderId) {

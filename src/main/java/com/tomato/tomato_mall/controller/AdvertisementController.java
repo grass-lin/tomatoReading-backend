@@ -16,7 +16,7 @@ import java.util.List;
  * <p>
  * 提供广告的增删改查的REST API接口
  * 所有接口返回统一的ResponseVO格式，包含状态码、消息和数据
- * 管理员角色拥有创建、更新和删除广告的权限
+ * 管理员拥有创建、更新和删除广告的权限
  * </p>
  * 
  * @author Team CBDDL

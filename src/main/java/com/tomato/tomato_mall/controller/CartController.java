@@ -122,13 +122,10 @@ public class CartController {
      * 结算购物车接口（创建订单）
      * <p>
      * 从购物车中选择商品创建订单，验证库存，锁定库存，计算金额
-     * 支付流程的第一步
      * </p>
      * 
      * @param checkoutDTO 结算信息数据传输对象，包含购物车商品ID、配送地址和支付方式
      * @return 返回包含订单信息的响应体，状态码200
-     * @throws IllegalArgumentException         当库存不足或数据无效时抛出
-     * @throws java.util.NoSuchElementException 当用户或商品不存在时抛出
      */
     @PostMapping("/checkout")
     public ResponseEntity<ResponseVO<OrderDetailVO>> checkout(@Valid @RequestBody CheckoutDTO checkoutDTO) {

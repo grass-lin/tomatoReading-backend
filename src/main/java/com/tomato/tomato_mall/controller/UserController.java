@@ -13,9 +13,6 @@ import jakarta.validation.Valid;
 
 import java.util.List;
 
-
-import java.nio.file.AccessDeniedException;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
  * <p>
  * 提供用户注册、登录、查询和更新等功能的REST API接口
  * 所有接口返回统一的ResponseVO格式，包含状态码、消息和数据
+ * 管理员拥有获取所有用户信息的权限
  * </p>
  * 
  * @author Team CBDDL
@@ -56,7 +54,6 @@ public class UserController {
      * 
      * @param registerDTO 注册信息数据传输对象，包含用户名、密码等注册信息
      * @return 返回包含新创建用户信息的响应体，状态码201
-     * @throws UsernameBusinessException 当用户名已存在时抛出
      */
     @PostMapping
     // Bad Practice
@@ -80,8 +77,6 @@ public class UserController {
      * @param loginDTO 登录信息数据传输对象，包含用户名和密码
      * @param response HTTP响应对象，用于设置认证Cookie
      * @return 返回包含用户信息的响应体，状态码200
-     * @throws BadCredentialsException 当用户名或密码不正确时抛出
-     * @throws NoSuchElementException  当用户不存在时抛出
      */
     @PostMapping("/login")
     // Bad Practice
@@ -110,8 +105,6 @@ public class UserController {
      * @param username 要查询的用户名
      * @param request  HTTP请求对象
      * @return 返回包含用户信息的响应体，状态码200
-     * @throws AccessDeniedException 
-     * @throws NoSuchElementException 当用户不存在时抛出
      */
     @GetMapping("/{username}")
     public ResponseEntity<ResponseVO<UserVO>> getUserDetail(@PathVariable String username,
@@ -129,8 +122,6 @@ public class UserController {
      * 
      * @param updateDTO 用户更新信息数据传输对象
      * @return 返回包含更新后用户信息的响应体，状态码200；或返回错误信息，状态码403
-     * @throws AccessDeniedException 
-     * @throws NoSuchElementException 当用户不存在时抛出
      */
     @PutMapping
     // Bad Practice
@@ -173,7 +164,7 @@ public class UserController {
     /**
      * 获取所有用户信息接口
      * <p>
-     * 仅管理员可访问此接口，返回系统中所有用户的信息列表
+     * 仅管理员访问
      * </p>
      *
      * @return 返回包含所有用户信息列表的响应体，状态码200

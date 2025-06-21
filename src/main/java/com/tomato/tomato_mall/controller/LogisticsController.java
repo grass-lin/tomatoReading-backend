@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * <p>
  * 提供物流信息管理的REST API接口
  * 所有接口返回统一的ResponseVO格式，包含状态码、消息和数据
+ * 管理员拥有为订单项创建物流信息的权限
  * </p>
  * 
  * @author Team CBDDL
@@ -25,20 +26,20 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/logistics")
 public class LogisticsController {
-    
+
     private final LogisticsService logisticsService;
-    
+
     /**
      * 构造函数，通过依赖注入初始化服务
      */
     public LogisticsController(LogisticsService logisticsService) {
         this.logisticsService = logisticsService;
     }
-    
+
     /**
      * 创建物流信息接口
      * <p>
-     * 管理员为已支付的订单项列表添加物流信息，标记订单项为已发货
+     * 为已支付的订单项列表添加物流信息，标记订单项为已发货
      * </p>
      * 
      * @param createDTO 物流信息创建数据传输对象
@@ -51,7 +52,7 @@ public class LogisticsController {
         List<LogisticsVO> logisticsVOs = logisticsService.createLogistics(createDTO);
         return ResponseEntity.ok(ResponseVO.success(logisticsVOs));
     }
-    
+
     /**
      * 查询物流信息接口
      * <p>

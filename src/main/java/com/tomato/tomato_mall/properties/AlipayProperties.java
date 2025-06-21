@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
  * 该类用于从配置文件中读取支付宝相关配置
  * 包括应用ID、密钥、网关地址等重要参数
  * </p>
+ *
+ * @author Team CBDDL
+ * @version 1.0
  */
 @Data
 @Component

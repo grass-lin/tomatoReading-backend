@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
  * <p>
  * 该类用于从配置文件中读取JWT相关配置
  * </p>
+ *
+ * @author Team CBDDL
+ * @version 1.0
  */
 @Component
 @ConfigurationProperties(prefix = "app.jwt")

@@ -13,6 +13,9 @@ import org.springframework.context.annotation.Configuration;
  * 该类负责创建支付宝API调用所需的核心组件。
  * 通过Spring配置管理，集成了与支付宝交互相关功能。
  * </p>
+ *
+ * @author Team CBDDL
+ * @version 1.0
  */
 @Configuration
 public class AlipayConfig {

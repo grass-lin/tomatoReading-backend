@@ -18,9 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +27,8 @@ import org.springframework.web.bind.annotation.*;
  * 订单控制器
  * <p>
  * 提供订单创建、支付处理和支付回调等功能的REST API接口
- * 所有接口返回统一的ResponseVO格式，包含状态码、消息和数据
+ * 除支付回调外的接口返回统一的ResponseVO格式，包含状态码、消息和数据
+ * 管理员拥有获取所有订单信息的权限
  * </p>
  * 
  * @author Team CBDDL
@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/orders")
 public class OrderController {
 
-  private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
   private final OrderService orderService;
 
   /**
@@ -52,13 +51,10 @@ public class OrderController {
 
   /**
    * 发起支付接口
-   * 支付流程的第二步
    * </p>
    * 
    * @param orderId 订单ID
    * @return 返回包含支付表单和订单信息的响应体，状态码200
-   * @throws java.util.NoSuchElementException 当订单不存在时抛出
-   * @throws IllegalStateException            当订单状态不允许支付时抛出
    */
   @PostMapping("/{orderId}/pay")
   public ResponseEntity<ResponseVO<PaymentVO>> initiatePayment(@PathVariable String orderId) {
@@ -70,7 +66,6 @@ public class OrderController {
    * 支付回调处理接口
    * <p>
    * 处理支付平台的异步通知，验证支付结果，更新订单状态和库存
-   * 支付流程的第三步
    * </p>
    * 
    * @param request  HTTP请求对象，包含支付平台回调参数
@@ -90,7 +85,6 @@ public class OrderController {
       boolean success = orderService.handlePaymentCallback(callbackDTO);
       response.getWriter().print(success ? "success" : "fail");
     } catch (Exception e) {
-      logger.error("Error processing payment callback", e);
       response.getWriter().print("fail");
     }
   }
@@ -108,6 +102,21 @@ public class OrderController {
   public ResponseEntity<ResponseVO<List<OrderVO>>> getOrders() {
     String username = SecurityContextHolder.getContext().getAuthentication().getName();
     List<OrderVO> orders = orderService.getOrdersByUsername(username);
+    return ResponseEntity.ok(ResponseVO.success(orders));
+  }
+
+  /**
+   * 获取所有订单接口
+   * <p>
+   * 返回系统中的所有订单列表，仅限管理员访问
+   * </p>
+   *
+   * @return 返回包含所有订单列表的响应体，状态码200
+   */
+  @GetMapping("/all")
+  @PreAuthorize("hasRole('admin')")
+  public ResponseEntity<ResponseVO<List<OrderVO>>> getAllOrders() {
+    List<OrderVO> orders = orderService.getAllOrders();
     return ResponseEntity.ok(ResponseVO.success(orders));
   }
 

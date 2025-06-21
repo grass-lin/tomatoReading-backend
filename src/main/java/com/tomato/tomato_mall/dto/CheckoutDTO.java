@@ -27,7 +27,7 @@ public class CheckoutDTO {
     /**
      * 购物车商品ID列表
      * <p>
-     * 用户选择结算的购物车商品ID列表，支持部分商品结算
+     * 用户选择结算的购物车商品ID列表，支持部分商品结算，必填字段。
      * </p>
      */
     @NotEmpty(message = "Cart item IDs must not be empty")
@@ -36,7 +36,7 @@ public class CheckoutDTO {
     /**
      * 收货地址信息
      * <p>
-     * 包含收货人姓名、电话、地址、邮编等信息
+     * 包含收货人姓名、电话、地址、邮编等信息。
      * </p>
      */
     @Valid
@@ -45,7 +45,7 @@ public class CheckoutDTO {
     /**
      * 支付方式
      * <p>
-     * 用户选择的支付方式，目前仅支持支付宝
+     * 用户选择的支付方式，仅支持支付宝，必填字段。
      * </p>
      */
     @NotBlank(message = "Payment method must not be empty")

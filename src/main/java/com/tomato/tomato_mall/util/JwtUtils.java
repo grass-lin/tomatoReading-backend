@@ -1,6 +1,5 @@
 package com.tomato.tomato_mall.util;
 
-import com.tomato.tomato_mall.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -10,6 +9,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
+
+import com.tomato.tomato_mall.properties.JwtProperties;
 
 import javax.crypto.SecretKey;
 import java.util.Date;

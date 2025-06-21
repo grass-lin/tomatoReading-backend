@@ -6,11 +6,11 @@ import com.aliyuncs.auth.sts.AssumeRoleResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
-import com.tomato.tomato_mall.config.OSSProperties;
-import com.tomato.tomato_mall.config.STSProperties;
 import com.tomato.tomato_mall.enums.ErrorTypeEnum;
 import com.tomato.tomato_mall.enums.OSSFileTypeEnum;
 import com.tomato.tomato_mall.exception.BusinessException;
+import com.tomato.tomato_mall.properties.OSSProperties;
+import com.tomato.tomato_mall.properties.STSProperties;
 import com.tomato.tomato_mall.service.OSSService;
 import com.tomato.tomato_mall.vo.OSSTokenVO;
 
@@ -32,8 +32,8 @@ import java.util.UUID;
  * @author Team CBDDL
  * @version 1.0
  * @see com.tomato.tomato_mall.service.OSSService
- * @see com.tomato.tomato_mall.config.OSSProperties
- * @see com.tomato.tomato_mall.config.STSProperties
+ * @see com.tomato.tomato_mall.properties.OSSProperties
+ * @see com.tomato.tomato_mall.properties.STSProperties
  */
 @Service
 public class OSSServiceImpl implements OSSService {

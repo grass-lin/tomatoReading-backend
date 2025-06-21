@@ -2,6 +2,8 @@ package com.tomato.tomato_mall.config;
 
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
+import com.tomato.tomato_mall.properties.AlipayProperties;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,8 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * 支付宝配置类
  * <p>
  * 该类负责创建支付宝API调用所需的核心组件。
- * 通过Spring配置管理，确保AlipayClient实例只被创建一次并在整个应用中共享，
- * 符合单例设计模式和依赖注入的最佳实践。
+ * 通过Spring配置管理，集成了与支付宝交互相关功能。
  * </p>
  */
 @Configuration
@@ -31,8 +32,7 @@ public class AlipayConfig {
      * 创建支付宝客户端实例
      * 
      * <p>
-     * AlipayClient是调用支付宝API的核心类，使用建造者模式创建，
-     * 通过Spring Bean管理确保线程安全和资源高效利用
+     * AlipayClient是调用支付宝API的核心类，使用建造者模式创建
      * </p>
      * 
      * @return AlipayClient 支付宝客户端实例

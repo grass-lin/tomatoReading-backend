@@ -18,8 +18,8 @@ import com.tomato.tomato_mall.vo.OSSTokenVO;
  * @version 1.0
  * @see com.tomato.tomato_mall.enums.OSSFileTypeEnum
  * @see com.tomato.tomato_mall.vo.OSSTokenVO
- * @see com.tomato.tomato_mall.config.OSSProperties
- * @see com.tomato.tomato_mall.config.STSProperties
+ * @see com.tomato.tomato_mall.properties.OSSProperties
+ * @see com.tomato.tomato_mall.properties.STSProperties
  */
 public interface OSSService {
 

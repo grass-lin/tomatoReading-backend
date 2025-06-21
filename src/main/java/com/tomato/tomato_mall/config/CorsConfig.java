@@ -12,13 +12,6 @@ import org.springframework.web.filter.CorsFilter;
  * 该类配置全局的CORS策略，允许所有来源的跨域请求访问后端API，
  * 适用于前后端分离架构中的跨域通信需求。
  * </p>
- * <p>
- * 当前配置允许：
- * - 所有来源/IP地址的请求
- * - 所有常见的HTTP方法（GET, POST, PUT, DELETE等）
- * - 所有常见的请求头
- * - 凭证信息（如Cookies）的跨域传递
- * </p>
  * 
  * @author Team CBDDL
  * @version 1.0
@@ -37,10 +30,7 @@ public class CorsConfig {
    */
   @Bean
   public CorsFilter corsFilter() {
-    // 创建CORS配置
     CorsConfiguration config = new CorsConfiguration();
-
-    // 允许来自任何域的请求
     config.addAllowedOriginPattern("*");
 
     // 允许携带凭证信息（如Cookies）

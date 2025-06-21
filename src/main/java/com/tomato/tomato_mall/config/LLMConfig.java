@@ -9,10 +9,33 @@ import org.springframework.context.annotation.Configuration;
 
 import com.tomato.tomato_mall.tool.ProductTools;
 
+/**
+ * 大语言模型配置类
+ * <p>
+ * 该类负责创建和配置聊天客户端(ChatClient)，用于处理用户与AI助手的对话交互。
+ * 通过Spring配置管理，集成了聊天记忆、工具调用和日志记录等功能，
+ * 为番茄书城提供智能客服支持。
+ * </p>
+ */
 @Configuration
 public class LLMConfig {
+
+    /**
+     * 创建聊天客户端实例
+     * 
+     * <p>
+     * ChatClient是与大语言模型交互的核心类，配置了专业的书城助手角色，
+     * 集成了产品查询工具、对话记忆和调试日志功能
+     * </p>
+     * 
+     * @param chatClientBuilder 聊天客户端构建器
+     * @param chatMemory        聊天记忆组件，用于维护对话上下文
+     * @param productTools      产品工具，用于查询商品信息
+     * @return ChatClient 配置完成的聊天客户端实例
+     */
     @Bean
-    public ChatClient chatClient(ChatClient.Builder chatClientBuilder, ChatMemory chatMemory, ProductTools productTools) {
+    public ChatClient chatClient(ChatClient.Builder chatClientBuilder, ChatMemory chatMemory,
+            ProductTools productTools) {
         return chatClientBuilder
                 .defaultSystem("""
                         你是一个专业的在线实体书商城助手，名叫"番茄书城助手"，提供友好、准确的回复。

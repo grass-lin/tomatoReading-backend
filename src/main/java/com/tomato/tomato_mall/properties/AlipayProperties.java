@@ -1,4 +1,4 @@
-package com.tomato.tomato_mall.config;
+package com.tomato.tomato_mall.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -32,7 +32,7 @@ public class AlipayProperties {
     private String alipayPublicKey;
     
     /**
-     * 支付宝网关地址(沙箱或正式环境)
+     * 支付宝网关地址
      */
     private String gatewayUrl;
     
@@ -62,7 +62,7 @@ public class AlipayProperties {
     private String format = "json";
     
     /**
-     * 支付超时时间，单位：分钟，默认30分钟
+     * 支付超时时间，单位：分钟
      */
     private String timeoutExpress = "30m";
 }

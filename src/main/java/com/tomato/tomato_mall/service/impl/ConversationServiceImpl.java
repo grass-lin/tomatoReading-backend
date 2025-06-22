@@ -28,6 +28,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * AI对话服务实现类
+ * <p>
+ * 实现AI对话和消息管理的核心业务逻辑
+ * 包括对话创建、查询、删除和消息处理功能
+ * 集成Spring AI客户端实现AI对话功能，支持聊天记忆和流式响应
+ * </p>
+ * 
+ * @author Team CBDDL
+ * @version 1.0
+ */
 @Service
 public class ConversationServiceImpl implements ConversationService {
 
@@ -37,6 +48,15 @@ public class ConversationServiceImpl implements ConversationService {
     private final ChatClient chatClient;
     private final ChatMemory chatMemory;
 
+    /**
+     * 构造函数，通过依赖注入初始化所需服务
+     * 
+     * @param conversationRepository 对话数据访问接口
+     * @param messageRepository      消息数据访问接口
+     * @param userRepository         用户数据访问接口
+     * @param chatClient             Spring AI聊天客户端，用于与AI模型交互
+     * @param chatMemory             聊天记忆组件，用于保存对话上下文
+     */
     public ConversationServiceImpl(
             ConversationRepository conversationRepository,
             MessageRepository messageRepository,
@@ -213,10 +233,30 @@ public class ConversationServiceImpl implements ConversationService {
                 });
     }
 
+    /**
+     * 将对话实体转换为视图对象（不包含消息）
+     * <p>
+     * 转换对话基本信息，用于对话列表显示
+     * </p>
+     * 
+     * @param conversation 对话实体
+     * @return 对话视图对象
+     */
     private ConversationVO convertToConversationVO(Conversation conversation) {
         return convertToConversationVO(conversation, false);
     }
 
+    /**
+     * 将对话实体转换为视图对象
+     * <p>
+     * 转换对话信息，可选择是否包含完整的消息历史记录
+     * 当hasMessages为true时，查询并转换所有相关消息
+     * </p>
+     * 
+     * @param conversation 对话实体
+     * @param hasMessages  是否包含消息历史
+     * @return 对话视图对象
+     */
     private ConversationVO convertToConversationVO(Conversation conversation, boolean hasMessages) {
         ConversationVO vo = new ConversationVO();
         BeanUtils.copyProperties(conversation, vo);
@@ -232,6 +272,15 @@ public class ConversationServiceImpl implements ConversationService {
         return vo;
     }
 
+    /**
+     * 将消息实体转换为视图对象
+     * <p>
+     * 转换消息信息，将角色枚举转换为字符串格式
+     * </p>
+     * 
+     * @param message 消息实体
+     * @return 消息视图对象
+     */
     private MessageVO convertToMessageVO(Message message) {
         MessageVO vo = new MessageVO();
         BeanUtils.copyProperties(message, vo);

@@ -9,6 +9,9 @@ import com.tomato.tomato_mall.entity.Product;
 
 /**
  * 与向量数据库交互的工具类
+ * 
+ * @author Team CBDDL
+ * @version 1.0
  */
 @Component
 public class VectorStoreUtil {
@@ -21,6 +24,7 @@ public class VectorStoreUtil {
 
     /**
      * 将单个商品信息注入向量数据库
+     * 
      * @param product 商品对象
      */
     public void addProductVector(Product product) {
@@ -33,6 +37,7 @@ public class VectorStoreUtil {
 
     /**
      * 从向量数据库中移除指定ID的商品信息
+     * 
      * @param productId 商品ID
      */
     public void removeProductVector(Long productId) {
@@ -49,6 +54,7 @@ public class VectorStoreUtil {
 
     /**
      * 更新向量数据库中的商品信息（先删除后添加）
+     * 
      * @param product 商品对象
      */
     public void updateProductVector(Product product) {

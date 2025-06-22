@@ -13,12 +13,12 @@ import java.util.List;
  */
 @Repository
 public interface OrderRepository extends JpaRepository<Order, String> {
-    
+
     /**
      * 根据用户查找所有订单
      */
     List<Order> findByUser(User user);
-    
+
     /**
      * 查询指定时间之前的待支付订单
      */

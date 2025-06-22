@@ -10,8 +10,20 @@ import org.springframework.ai.document.Document;
 import com.tomato.tomato_mall.entity.Product;
 import com.tomato.tomato_mall.entity.Specification;
 
+/**
+ * 文档转换工具类，用于将商品信息转换为Spring AI文档格式
+ * 
+ * @author Team CBDDL
+ * @version 1.0
+ */
 public class DocumentConverter {
 
+  /**
+   * 将单个商品对象转换为Spring AI文档格式
+   * 
+   * @param product 要转换的商品对象
+   * @return 转换后的Document对象，包含商品信息和元数据
+   */
   public static Document convertToDocument(Product product) {
     // 构建文档内容
     StringBuilder contentBuilder = new StringBuilder();
@@ -40,6 +52,12 @@ public class DocumentConverter {
     return new Document(contentBuilder.toString(), metadata);
   }
 
+  /**
+   * 将商品列表批量转换为Spring AI文档格式
+   * 
+   * @param products 要转换的商品列表
+   * @return 转换后的Document对象列表
+   */
   public static List<Document> convertToDocuments(List<Product> products) {
     return products.stream()
         .map(DocumentConverter::convertToDocument)

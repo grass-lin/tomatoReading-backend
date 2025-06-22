@@ -34,10 +34,6 @@ public class AlipayConfig {
     /**
      * 创建支付宝客户端实例
      * 
-     * <p>
-     * AlipayClient是调用支付宝API的核心类，使用建造者模式创建
-     * </p>
-     * 
      * @return AlipayClient 支付宝客户端实例
      */
     @Bean

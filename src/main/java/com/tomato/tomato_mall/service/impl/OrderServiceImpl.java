@@ -104,6 +104,7 @@ public class OrderServiceImpl implements OrderService {
         if (cartItems.size() != cartItemIds.size()) {
             throw new BusinessException(ErrorTypeEnum.CARTITEM_NOT_FOUND);
         }
+        // 迭代器策略
         cartItems.forEach(cartItem -> {
             if (cartItem.getStatus() != CartItemStatus.ACTIVE) {
                 throw new BusinessException(ErrorTypeEnum.CARTITEM_STATUS_ERROR);
@@ -142,6 +143,7 @@ public class OrderServiceImpl implements OrderService {
                     orderItem.setOrder(order);
                     orderItem.setProduct(product);
                     orderItem.setCartItem(cartItem);
+                    // 保存商品的快照名称与价格
                     orderItem.setProductName(product.getTitle());
                     orderItem.setPrice(product.getPrice());
                     orderItem.setQuantity(quantity);
